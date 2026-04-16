@@ -1,7 +1,7 @@
 ---
 name: cocoloop-skill-factory
 description: 用于创建或升级多平台 Agent Skill 的 Meta Skill。适用于用户想把模糊想法收敛成可进入设计与构建准备阶段的 Skill 方案、需要结合 Cocoloop 与 ClawHub 搜索参考、选择平台模板、组织原子能力、补齐脚本化规划，并按需生成 benchmark 计划时。
-version: 0.1
+version: 0.1.0
 author: tanshow
 ---
 
