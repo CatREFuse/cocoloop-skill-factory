@@ -78,6 +78,14 @@
 - 哪些部分不适合沿用，以及为什么
 - 与当前需求、当前平台和当前版本边界的关系
 
+如果设计里涉及浏览器自动化路径比较，设计文档还需要继续记录：
+
+- `opencli`、`agent-browser`、`playwright-interactive` 各自的安装方式和首次使用前置动作
+- 哪个方案复用当前浏览器登录态，哪个方案更适合独立自动化或本地调试
+- 为什么当前需求选择 `OpenCLI`、`agent-browser` 或 `playwright-interactive`
+- 如果推荐 `OpenCLI`，扩展安装说明和 `opencli doctor` 验证如何交付给用户
+- 未被选中的路线保留为哪一种降级或替代路径
+
 这些内容建议优先写入：
 
 - `reference-skill-analysis.md`
@@ -85,6 +93,17 @@
 - `spec.md`
 
 其中 `reference-skill-analysis.md` 负责承接候选 Skill 的细节拆解，`design-summary.md` 负责承接设计决策和取舍原因。
+
+### 浏览器自动化方向的推荐顺序
+
+当用户任务强依赖浏览器自动化时，设计阶段默认使用下面的判断顺序：
+
+1. 先确认业务是否已经被 `OpenCLI` 的现成站点命令、`opencli browser` 或适配器流程覆盖
+2. 如果覆盖且用户接受扩展安装，优先推荐 `OpenCLI`
+3. 如果任务更偏独立浏览器流程、页面验证、结构化截图和表单自动化，优先考虑 `agent-browser`
+4. 如果任务更偏本地 Web 或 Electron 调试、持久会话 QA、反复 reload 与复测，再考虑 `playwright-interactive`
+
+这个顺序用于帮助用户收敛，不代表可以跳过比较。设计文档仍然需要把利弊和替代路径写清楚。
 
 ## 平台与模板判断
 
