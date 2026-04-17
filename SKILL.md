@@ -1,19 +1,16 @@
 ---
 name: cocoloop-skill-factory
-description: 用于创建或升级多平台 Agent Skill 的 Meta Skill。适用于用户想把模糊想法收敛成可进入设计与构建准备阶段的 Skill 方案、需要结合 Cocoloop 与 ClawHub 搜索参考、选择平台模板、组织原子能力、补齐脚本化规划，并按需生成 benchmark 计划时。
+description: 用于创建或升级多平台 Agent Skill 的 Meta Skill。适用于用户想把模糊想法收敛成可生成最终 Skill 的稳定方案、需要结合 Cocoloop 与 ClawHub 搜索参考、选择平台模板、组织原子能力、补齐脚本化规划，并明确平台兼容与发布边界时。
 version: 0.1.0
 author: tanshow
 ---
 
 # CocoLoop Skill Factory
 
-当前版本阶段声明：
-本目录当前只承接需求、设计和构建准备文档，不承诺直接生成 Skill 包或自动执行 benchmark。
-
 ## Overview
 
 `cocoloop-skill-factory` 是一个面向 `codex`、`claude code`、`openclaw`、`copaw`、`molili`、`hermes agent` 的 Meta Skill。
-它负责把用户的想法推进成一份稳定 spec，并把构建方向、模板选择、原子能力和脚本化策略整理清楚，而不是只停在需求讨论或零散建议。
+它负责把用户的想法推进成一份稳定 spec，并把构建方向、模板选择、原子能力、脚本化策略和平台兼容边界整理清楚，最终服务于 Skill 生成与交付。
 
 当用户出现这些诉求时使用本 Skill：
 
@@ -26,13 +23,14 @@ author: tanshow
 
 整个流程都围绕这几条规则执行：
 
-1. 先形成 spec，再进入构建准备。
-2. 调研和设计都保持双钻节奏，先发散，再收敛。
-3. **分步询问：对话每次只推进一个关键问题，严禁一次性列出所有问题等待用户回答。必须等用户回答后再问下一个问题。**
-4. `cocoloop` 与 `clawhub` 搜索在正常环境下默认进入流程；不可用时允许降级，但要记录缺口。
-5. 当前阶段只把环境检测与搜索这类基础动作保留为 CLI，其余脚本化能力只做规划，不直接落地。
-6. 推荐外部方案时，要同时给出接入方式、依赖门槛、风险和替代路径。
-7. `benchmark` 是可选阶段，只在适合比较的任务里进入。
+1. 先判定任务域，再继续调研平台、依赖和执行面。
+2. 先形成 spec，再进入构建与交付判断。
+3. 调研和设计都保持双钻节奏，先发散，再收敛。
+4. **分步询问：对话每次只推进一个关键问题，严禁一次性列出所有问题等待用户回答。必须等用户回答后再问下一个问题。**
+5. `cocoloop`、`clawhub` 与 `github` 搜索在正常环境下默认进入流程；通用社区检索按需补充；不可用时允许降级，但要记录缺口。
+6. 平台兼容声明必须以公开标准或已核实的本地协议为依据，不能凭经验口头承诺。
+7. 推荐外部方案时，要同时给出接入方式、依赖门槛、风险和替代路径。
+8. `benchmark` 是可选阶段，只在适合比较的任务里进入，并且默认按任务域判断是否适合进入。
 
 ## Workflow
 
@@ -50,10 +48,10 @@ author: tanshow
 当前 CLI 边界：
 
 - `detect-environment.py` 用于环境检测
-- `search-registry.py` 用于统一承载 `cocoloop` 与 `clawhub` 搜索
-- 当前版本不提供 spec 生成、skill 构建、skill 校验或 benchmark 执行的自动化 CLI
+- `search-registry.py` 用于统一承载 `cocoloop`、`clawhub` 与 `github` 搜索
+- 当前版本不提供完整的自动生成与发布 CLI，但必须在文档层明确生成、校验和发布所缺的环节
 
-其中 `search-registry.py` 是对 PRD 中 `cocoloop-search` 与 `clawhub-search` 的合并实现，只覆盖搜索能力本身，不新增额外流程能力。
+其中 `search-registry.py` 是对 PRD 中 `cocoloop-search`、`clawhub-search` 与 GitHub 检索的合并实现，只覆盖搜索能力本身，不新增额外流程能力。
 
 ### Step 1: Initialize
 
@@ -64,12 +62,20 @@ author: tanshow
 1. 判断用户要创建新 Skill，还是升级已有 Skill。
 2. 检查当前仓库、工作区或现有文件里是否已经有相关上下文。
 3. 运行 `python3 utils/cli/detect-environment.py`，获取平台、系统、Shell、浏览器与本地工具线索。
-4. 如果用户说“目标平台就是当前环境”，用检测结果提供候选线索，再请用户确认。
-5. 判断当前环境里是否已有成熟 `brainstorming` 能力；如没有，再回退到 `sub-skills/brainstorm/SKILL.md`。
+4. 先判断当前需求属于哪个任务域；如果 `presets/` 里已有对应预设，立即读取。
+5. 如果用户说“目标平台就是当前环境”，用检测结果提供候选线索，再请用户确认。
+6. 判断当前环境里是否已有成熟 `brainstorming` 能力；如没有，再回退到 `sub-skills/brainstorm/SKILL.md`。
 
 ### Step 2: Research
 
 进入需求调研阶段时，阅读 `ref/research.md`。
+
+**调研阶段先做任务域路由**
+
+- 先判定 `primary_domain`
+- 如果需求明显跨域，再补 `peer_domains`
+- 如果 `presets/` 中已有对应预设，优先按预设问题包继续追问
+- 如果没有完全匹配的预设，也要先给出最接近的主域判断，再把剩余部分写入研究缺口
 
 **调研阶段核心原则：分步询问，一次一个问题**
 
@@ -97,8 +103,10 @@ author: tanshow
 
 调研阶段必须拿到这些信息（分步采集）：
 
+- 主任务域、并列补充域，以及是否跨域
 - 用户想解决的问题与使用场景
 - 目标平台与运行环境
+- 目标平台对应的支持等级、公开标准来源，以及用户是否接受当前等级边界
 - 偏好脚本语言、不可接受的脚本语言，以及运行时限制
 - 依赖偏好与权限限制
 - 如果涉及网页、图片、Figma 或其他视觉输出，要收集风格偏好，并判断是否需要引入风格约束型 Skill
@@ -112,8 +120,10 @@ author: tanshow
 视觉输出场景的默认推荐顺序：
 
 - 网页、落地页、应用 UI：优先判断是否需要 `frontend-skill`
+- 单张信息图、视觉说明图、传播型图卡：优先判断是否需要 `imagegen`
 - 用户明确要求 `Nothing` 风格：再引入 `nothing-design`
 - 图片生成或图片编辑：判断是否需要 `imagegen` 或 `gemini-image`
+- 如果最终交付物是 `.pptx`，优先判断是否需要 `slides`
 - 如果当前环境没有合适的风格约束 Skill，仍然要把风格偏好写入 spec，而不是跳过
 
 创作写作类场景的处理原则：
@@ -128,7 +138,7 @@ author: tanshow
 - 如果必须上浏览器自动化，至少向用户比较 2 条方向，常用候选是 `opencli`、`agent-browser`、`playwright-interactive`
 - 比较时至少说明这几个维度：是否复用现有登录态、安装门槛、调试深度、稳定性、维护成本、失败后的替代路径
 - 如果用户接受额外安装，且任务已落在 `OpenCLI` 已有站点命令、`opencli browser` 或适配器流程可覆盖的范围内，优先推荐 `OpenCLI`
-- 选择 `OpenCLI` 时，补充 `atomic-capabilities/browser-access/opencli-browser-bridge.md` 中的扩展安装与 `opencli doctor` 验证步骤
+- 选择 `OpenCLI` 时，补充 `atomic-capability/browser-access/opencli-browser-bridge.md` 中的扩展安装与 `opencli doctor` 验证步骤
 - 如果任务更偏本地页面验证、结构化截图、表单回归或独立浏览器流程，优先把 `agent-browser` 作为候选
 - 如果任务更偏本地 Web 或 Electron 调试、持久会话 QA、反复迭代验证，再把 `playwright-interactive` 纳入候选
 
@@ -140,13 +150,17 @@ author: tanshow
 
 默认顺序：
 
-1. 运行 `python3 utils/cli/search-registry.py --source cocoloop --query '...'`
-2. 运行 `python3 utils/cli/search-registry.py --source clawhub --query '...'`
-3. 把结果整理成“直接复用 / 参考改造 / 仅供借鉴 / 放弃”四种结论
+1. 先根据主任务域和预设整理默认搜索关键词
+2. 运行 `python3 utils/cli/search-registry.py --source cocoloop --query '...'`
+3. 运行 `python3 utils/cli/search-registry.py --source clawhub --query '...'`
+4. 运行 `python3 utils/cli/search-registry.py --source github --query '...'`
+5. 如仍有明显缺口，再补通用社区或网页搜索
+6. 把结果整理成“直接复用 / 参考改造 / 仅供借鉴 / 放弃”四种结论
 
 判断时至少回答这些问题：
 
 - 候选 Skill 与当前需求的重合度有多高
+- 是否覆盖当前主任务域的核心高频任务
 - 是否覆盖目标平台
 - 是否有明显依赖门槛或安全风险
 - 如果采用它，用户得到的是安装、二次设计，还是只拿它的能力结构
@@ -160,6 +174,7 @@ author: tanshow
 
 设计阶段的硬规则：
 
+- 优先读取当前主任务域对应的预设，再展开方案比较
 - 只要搜索结果里有需要深入判断的候选 Skill，就**必须**先把候选 Skill 全量拉取到本地再分析，不能只依据搜索摘要做设计决策
 - 本地分析时，要完整查看 `SKILL.md`、子目录结构、脚本、参考文档、模板、依赖声明和关键资源
 - 需要复用或借鉴的能力、设计要点、功能最佳实践和限制条件，必须详细写入设计文档，而不是只保留在临时分析里
@@ -187,13 +202,19 @@ author: tanshow
 此阶段的核心动作：
 
 1. 把研究与设计结论整理成统一 spec 和构建说明。
-2. 阅读 `atomic-capabilities/index.md`，为关键能力选择可复用模块。
-3. 阅读 `utils/template/` 下的目标平台模板，明确输出骨架、元数据差异和脚本策略。
-4. 调用 `sub-skills/skill-creator/SKILL.md`，把 spec 转成可执行的构建计划。
-5. 如果任务适合比较验证，再阅读 `utils/benchmark.md`，只规划 benchmark 的进入条件、样本和判定标准。
+   先形成一份结构化 `spec.yaml`，再继续整理研究摘要、设计摘要和构建计划。
+   如果没有 `primary_domain`、`coverage_status` 或 `open_gaps` 的收口结果，不得进入下一步。
+2. 阅读 `atomic-capability/index.md`，为关键能力选择可复用模块。
+3. 阅读 `presets/index.md` 和当前主任务域预设，确认默认输出、风险门槛和执行面。
+4. 阅读 `utils/template/` 下的目标平台模板，明确输出骨架、元数据差异和脚本策略。
+5. 调用 `sub-skills/skill-creator/SKILL.md`，把 spec 转成可执行的构建计划。
+6. 如果任务适合比较验证，再阅读 `utils/benchmark.md`，只规划 benchmark 的进入条件、样本和判定标准。
+7. 如果目标平台属于任意 `supported_*`，继续补平台安装、校验和发布边界；`supported_public` 可进入打包准备，`supported_authoring_only` 与 `supported_local_only` 只能停在作者规范或本地激活边界。
+8. 条件满足时，先在 `factory-skill-builder/` 执行 `npm install`，再使用 `factory-skill-builder/scripts/build_skill_from_spec.cjs` 生成最小 Skill 骨架，并用平台校验脚本确认结果；生成链要把模板选择结果一并写入产物。
 
 建议在这一阶段保留的文档产物：
 
+- `spec.yaml`
 - `brainstorming-notes.md`
 - `research-summary.md`
 - `reference-skill-analysis.md`
@@ -201,6 +222,7 @@ author: tanshow
 - `spec.md`
 - `build-plan.md`
 - `benchmark-plan.md`（仅在进入 benchmark 时）
+- `platform-support-notes.md`（平台声明有特殊边界时）
 
 ### Step 6: Deliver
 
@@ -210,6 +232,7 @@ author: tanshow
 - 一份设计决策摘要
 - 一份构建计划或构建说明
 - 外部依赖的接入说明
+- 一份平台兼容与发布边界说明
 - 按需生成的 benchmark 计划
 
 如果用户只想得到设计方案，不想立即落地产物，可以在 spec 和设计决策确认后结束。
@@ -242,16 +265,26 @@ author: tanshow
   需求调研阶段的对话骨架、必填信息和阶段出口
 - `ref/design.md`
   方案展开、比较和收口方式
+- `ref/platform-support-matrix.md`
+  子仓内的本地平台支持矩阵与声明边界
+- `factory-skill-builder/scripts/`
+  `factory` 内部的 `spec -> skill` 渲染、平台校验与打包入口
 - `ref/construction.md`
   如何把统一 spec 收口为构建计划与产物边界
 - `sub-skills/brainstorm/SKILL.md`
   没有外部 brainstorming 时的兜底调研子 Skill
 - `sub-skills/skill-creator/SKILL.md`
   进入构建准备阶段时的规划子 Skill
-- `atomic-capabilities/index.md`
+- `presets/index.md`
+  任务域预设目录和对应问题包、执行面建议
+- `atomic-capability/index.md`
   原子能力索引与组合建议
+- `utils/template/spec-template.yaml`
+  统一结构化协议模板
 - `utils/template/*.md`
   平台模板、结构差异和选择条件
+- `output/README.md`
+  `output/` 目录契约和每类产物职责
 - `utils/cli/*.py`
   环境检测与搜索标准化
 - `utils/benchmark.md`
@@ -264,7 +297,7 @@ author: tanshow
 1. `SKILL.md` 是否能独立说明触发场景、流程和资源读取顺序
 2. 目标平台模板是否与最终目录结构一致
 3. 外部依赖是否都有接入说明和降级路径
-4. 当前阶段允许脚本化的动作是否仍只限于环境检测与搜索
+4. 当前阶段允许脚本化的动作是否已经覆盖环境检测、搜索、最小渲染与平台校验
 5. `molili` 是否按独立平台处理，没有被并入 `copaw`
 6. 是否已经明确目标平台对应的目录和元数据要求
 7. benchmark 若被启用，是否明确了 `0 skill` 与目标 Skill 方案效果的比较对象

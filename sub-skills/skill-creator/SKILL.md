@@ -18,6 +18,25 @@ Skills are modular, self-contained packages that extend Gemini CLI's capabilitie
 3. Domain expertise - Company-specific knowledge, schemas, business logic
 4. Bundled resources - Scripts, references, and assets for complex and repetitive tasks
 
+## Factory Integration
+
+当这个子 skill 被 `cocoloop-skill-factory` 调用时，先继承主流程已经确认的结果，而不是重新发明一套结构。
+
+优先使用这些输入：
+
+- 当前的 `primary_domain`
+- 当前的 `peer_domains`
+- 当前任务域对应的预设文档
+- 已经收口的 `spec.yaml`
+
+在工厂场景里，建议按下面顺序组织内容：
+
+1. 先用任务域预设确定 references 和 assets 的最小集合
+2. 再根据平台模板决定目录结构
+3. 再把脚本、references、assets 放进最小可维护范围
+
+如果一个 Skill 明显跨多个任务域，优先把主任务域写进 `SKILL.md` 主体，把补充域内容拆到 `references/`，避免主文件继续膨胀。
+
 ## Core Principles
 
 ### Concise is Key
@@ -197,13 +216,26 @@ Gemini CLI reads REDLINING.md or OOXML.md only when the user needs those feature
 
 Skill creation involves these steps:
 
+When this sub skill is used inside `cocoloop-skill-factory` and a settled `spec.yaml` already exists, the default entry is the factory-owned builder chain, not the generic packager:
+
+- `factory-skill-builder/scripts/render_skill_from_spec.cjs`
+- `factory-skill-builder/scripts/validate_platform_skill.cjs`
+- `factory-skill-builder/scripts/build_skill_from_spec.cjs`
+
+If the current task already has a settled `spec.yaml`, do not follow the generic sequence below. Use the factory-owned builder chain and stop routing through the standalone packager.
+
 1. Understand the skill with concrete examples
 2. Plan reusable skill contents (scripts, references, assets)
 3. Initialize the skill (run node init_skill.cjs)
 4. Edit the skill (implement resources and write SKILL.md)
-5. Package the skill (run node package_skill.cjs)
+5. If this is a standalone skill with no settled `spec.yaml`, package it with `package_skill.cjs`
 6. Install and reload the skill
 7. Iterate based on real usage
+
+Keep the boundary clear:
+
+- Generic standalone packaging uses `package_skill.cjs`
+- Factory-owned `spec.yaml -> skill` rendering and platform-aware packaging must go through `factory-skill-builder/scripts/`
 
 Follow these steps in order, skipping only if there is a clear reason why they are not applicable.
 
@@ -323,11 +355,21 @@ Do not include any other fields in YAML frontmatter.
 
 Write instructions for using the skill and its bundled resources.
 
-### Step 5: Packaging a Skill
+### Step 5: Packaging a Standalone Skill
 
-Once development of the skill is complete, it must be packaged into a distributable .skill file that gets shared with the user. The packaging process automatically validates the skill first (checking YAML and ensuring no TODOs remain) to ensure it meets all requirements:
+Once development of the skill is complete, it must be packaged into a distributable .skill file that gets shared with the user. The packaging process automatically validates the skill first (checking YAML and ensuring no TODOs remain) to ensure it meets all requirements.
 
 **Note:** Use the absolute path to the script as provided in the `available_resources` section.
+
+If the current task is inside `cocoloop-skill-factory` and already has a settled `spec.yaml`, stop here and use the factory-owned builder under `factory-skill-builder/scripts/`. The generic command below is only for standalone Skill packaging outside the factory chain and must not be used as a substitute for the factory path.
+
+Factory path first:
+
+```bash
+node factory-skill-builder/scripts/build_skill_from_spec.cjs <spec.yaml> --out <output-dir> --package
+```
+
+Standalone path only:
 
 ```bash
 node <path-to-skill-creator>/scripts/package_skill.cjs <path/to/skill-folder>

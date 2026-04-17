@@ -1,0 +1,9 @@
+{
+  "name": "cocoloop-factory-skill-builder",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Internal spec-driven skill builder for cocoloop-skill-factory",
+  "dependencies": {
+    "yaml": "^2.8.1"
+  }
+}

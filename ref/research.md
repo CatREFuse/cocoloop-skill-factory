@@ -30,6 +30,31 @@
 4. 判断外部 `brainstorming` 是否可用；可用就优先复用，不可用就回退到 `sub-skills/brainstorm/SKILL.md`。
 5. 把问答和阶段结论整理成文档笔记，供设计阶段引用。
 
+## 任务域路由
+
+在继续追问平台、脚本和依赖之前，先完成任务域判断。
+
+第一轮优先判断这些域：
+
+- `engineering_delivery`
+- `frontend_design`
+- `browser_ui_testing`
+- `document_artifacts`
+- `docs_research`
+
+如果明显跨域，再补：
+
+- `workflow_integration`
+- `deploy_platform_ops`
+- `security_risk_review`
+
+路由动作固定如下：
+
+1. 先给出当前最可能的主任务域候选。
+2. 如果用户描述明显跨域，再补 `peer_domains`。
+3. 如果 `presets/` 中已有对应文档，立即读取预设问题包。
+4. 如果没有完全匹配的预设，仍然要先确定最接近的主域，再把剩余部分记入 `open_gaps`。
+
 ## 对话节奏
 
 ### 分步询问：一次只推进一个问题（强制要求）
@@ -125,6 +150,13 @@
 
 进入设计阶段前，至少要采集到下面这些字段：
 
+### 任务域字段
+
+- `primary_domain`
+- `peer_domains`
+- 是否跨域
+- 当前主域默认执行面是否可用
+
 ### 任务目标
 
 - 这个 Skill 要解决什么问题
@@ -137,6 +169,8 @@
 - 是否要同时覆盖多个平台
 - 如果用户说“当前环境就是目标平台”，用环境检测结果确认
 - 如果是多平台方案，要区分主平台和次平台，不要只记成一个混合答案
+- 每个平台当前属于 `supported_public`、`supported_authoring_only`、`supported_local_only`、`planned` 还是 `unverified`
+- 平台等级要能追溯到正式来源；没有来源时不能写成正式兼容
 
 ### 运行环境
 
@@ -166,6 +200,15 @@
 - 需要 Skill 骨架
 - 需要完整 Skill 包
 - 需要附带 benchmark 计划
+- 如果用户要求公开发布，要继续确认目标平台是否真的达到 `supported_public`
+
+### 默认执行面
+
+任务域判断完成后，需要继续确认：
+
+- 当前任务更适合 `Skill-only`、`Skill + CLI`，还是 `Skill + API/MCP`
+- 用户是否接受当前主域推荐的执行面
+- 如果不接受，替代路径是什么
 
 ### 脚本化比例
 
@@ -187,14 +230,41 @@
 
 - `frontend-skill`
   适用于网页、落地页、应用界面、交互原型等视觉要求较高的前端任务
+- `imagegen`
+  适用于单张信息图、视觉海报、说明图、图片生成或位图编辑
 - `nothing-design`
   只在用户明确要求 `Nothing` 风格时推荐
-- `imagegen`
-  适用于需要生成或编辑位图图片、插图、贴图、透明底素材
 - `gemini-image`
   适用于用户明确希望通过 Gemini 工作流生成图片
 
 如果当前环境没有适用的风格类 Skill，也不能跳过风格收集，仍然要把偏好写入需求结果。
+
+### 信息图类任务的补充收集
+
+如果任务是信息图、信息卡片、可视化说明图或传播型视觉页，需要继续确认：
+
+- 最终是单张位图成品，还是后续需要可编辑版式
+- 画幅和投放平台
+- 哪些文案和数字必须逐字准确
+- 更接近海报式传播，还是更接近一页 slide
+
+默认判断顺序：
+
+- 单张传播图优先考虑 `imagegen`
+- 如果文本极多、数字必须频繁改动，优先改成可编辑 PPT 或文档页
+
+### PPT 类任务的补充收集
+
+如果最终交付物是 `.pptx`，需要继续确认：
+
+- 目标受众
+- 使用场景
+- 页数范围
+- 比例要求
+- 是否必须保留可编辑性
+- 是否已有参考 deck、截图或 PDF
+
+当前环境已有 `slides` 能力时，优先把它作为 PPT 生成方向的推荐路径。
 
 ### 创作写作类项目的补充收集
 
@@ -266,8 +336,10 @@
 
 1. `python3 utils/cli/search-registry.py --source cocoloop --query '...'`，如果当前目录不在 skill 根目录，就改用 `python3 cocoloop-skill-factory/utils/cli/search-registry.py --source cocoloop --query '...'`
 2. `python3 utils/cli/search-registry.py --source clawhub --query '...'`，如果当前目录不在 skill 根目录，就改用 `python3 cocoloop-skill-factory/utils/cli/search-registry.py --source clawhub --query '...'`
+3. `python3 utils/cli/search-registry.py --source github --query '...'`，如果当前目录不在 skill 根目录，就改用 `python3 cocoloop-skill-factory/utils/cli/search-registry.py --source github --query '...'`
+4. 如果这三类结果仍不足以支撑判断，再补通用社区或网页搜索
 
-这里使用的是一个共享搜索入口，分别承载 `cocoloop-search` 与 `clawhub-search` 两类能力，不额外扩展到其他阶段动作。
+这里使用的是一个共享搜索入口，分别承载 `cocoloop`、`clawhub` 与 `github` 三类检索能力，不额外扩展到其他阶段动作。
 
 如果搜索失败，不要中断主流程。
 要在需求结果里标记“缺少外部参考”。

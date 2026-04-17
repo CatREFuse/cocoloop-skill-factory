@@ -31,6 +31,7 @@ DEFAULT_COMMANDS = {
 }
 
 COCOLOOP_SEARCH_API = "https://api.cocoloop.cn/api/v1/store/skills?page=1&page_size={limit}&keyword={query}&sort=downloads"
+GITHUB_SEARCH_API = "https://api.github.com/search/repositories?q={query}&per_page={limit}&sort=stars&order=desc"
 
 
 def fetch_cocoloop_api(query: str, limit: int) -> dict[str, Any]:
@@ -71,7 +72,53 @@ def fetch_cocoloop_api(query: str, limit: int) -> dict[str, Any]:
         }
 
 
+def fetch_github_api(query: str, limit: int) -> dict[str, Any]:
+    url = GITHUB_SEARCH_API.format(
+        query=urllib.parse.quote(query, safe=""),
+        limit=limit,
+    )
+    request = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "cocoloop-skill-factory/1.0",
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            raw_text = response.read().decode("utf-8")
+        parsed_json = safe_json_loads(raw_text)
+        ok = parsed_json is not None and not (
+            isinstance(parsed_json, dict)
+            and parsed_json.get("message")
+            and "items" not in parsed_json
+        )
+        return {
+            "command": ["GET", url],
+            "available": True,
+            "ok": ok,
+            "returncode": 0 if ok else None,
+            "raw_text": raw_text,
+            "parsed_json": parsed_json,
+            "error": None if ok else (
+                parsed_json.get("message") if isinstance(parsed_json, dict) and parsed_json.get("message") else "github api returned non-json payload"
+            ),
+        }
+    except Exception as exc:
+        return {
+            "command": ["GET", url],
+            "available": True,
+            "ok": False,
+            "returncode": None,
+            "raw_text": "",
+            "parsed_json": None,
+            "error": str(exc),
+        }
+
+
 def execute_search(source: str, query: str, limit: int) -> dict[str, Any]:
+    if source == "github":
+        return fetch_github_api(query, limit)
     args = [*DEFAULT_COMMANDS[source], query]
     if source == "clawhub":
         args.extend(["--limit", str(limit)])
@@ -206,8 +253,8 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run cocoloop/clawhub search and normalize the results as JSON.")
-    parser.add_argument("--source", choices=("cocoloop", "clawhub"), required=True)
+    parser = argparse.ArgumentParser(description="Run cocoloop/clawhub/github search and normalize the results as JSON.")
+    parser.add_argument("--source", choices=("cocoloop", "clawhub", "github"), required=True)
     parser.add_argument("--query", default="", help="Search query text.")
     parser.add_argument("--limit", type=int, default=10, help="Maximum number of search results to request.")
     args = parser.parse_args()

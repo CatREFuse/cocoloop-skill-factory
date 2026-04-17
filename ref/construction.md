@@ -1,23 +1,31 @@
 # 构建阶段指南
 
 当前版本阶段声明：
-本阶段只形成构建准备文档，不直接进入 Skill 包生成、测试自动化或 benchmark 执行。
+本阶段先形成稳定构建输入，再明确哪些平台可以进入最终生成、哪些只能停在本地安装或作者规范层。
 
 ## 目标
 
 构建阶段负责把收口后的设计方案转成稳定的构建说明。
-这里的重点是组织产物边界、选择模板、拼装能力、补齐脚本策略和说明，为下一阶段真正构建做准备。
+这里的重点是组织产物边界、选择模板、拼装能力、补齐脚本策略和说明，并明确平台兼容与发布边界。
 
 ## 输入
 
 进入本阶段前，应当已经具备：
 
 - 一份稳定的统一 spec
+- 一份结构化 `spec.yaml` 草案或模板实例
 - 一份设计决策摘要
 - 目标平台列表
 - 参考 Skill 或搜索结果判断
 - 原子能力选择结果
 - benchmark 决策
+
+进入本阶段前的阻塞条件：
+
+- 已确定 `primary_domain`
+- 如果跨域，已确定 `peer_domains`
+- `research_evidence.coverage_status` 已填写
+- 研究缺口已通过 `open_gaps` 明确表达
 
 命令路径约定：
 
@@ -29,6 +37,7 @@
 ### 1. 整理统一 spec
 
 把研究与设计结论整理成一份统一 spec。
+建议先形成结构化 `spec.yaml`，再继续补齐其余构建文档。
 统一 spec 建议至少包含：
 
 - 基本目标
@@ -41,17 +50,28 @@
 - 交付物清单
 - benchmark 意图
 
+如果当前阶段已经形成 `spec.yaml`，还需要继续检查：
+
+- 是否已经包含研究证据指针
+- 是否已经明确调研覆盖状态和缺口
+- 是否已经写出主任务域、并列补充域和平台 adapter
+- 是否已经和当前预设包保持一致
+
 如果当前收口的是规则补充、流程加固或方法论修订，也不能只停留在 spec。
 需要同步生成一组可审查的样例产物，至少包括：
 
+- `spec.yaml`
 - `research-summary.md`
 - `reference-skill-analysis.md`
 - `design-summary.md`
 - `spec.md`
 - `build-plan.md`
 
+这些产物必须按 `output/README.md` 的目录契约进入独立主题目录。
+
 ### 2. 选择模板
 
+先看任务域预设，再看平台模板。
 根据目标平台读取 `utils/template/` 下的模板文件。
 模板选择至少看这几个维度：
 
@@ -60,17 +80,35 @@
 - 是否包含子 Skill
 - 是否依赖外部方案
 - 是否需要脚本化能力
+- 当前平台是否允许声明公开兼容
 
 ### 3. 选择构建执行层
 
 统一 spec 准备好后，调用 `sub-skills/skill-creator/SKILL.md`。
 由构建规划层把 spec 转成文件结构建议、模板选择结论和内容装配步骤。
 
-当前版本只要求形成构建计划，不要求提供自动生成 Skill 包的 CLI。
+当前版本已经提供最小生成与校验链：
+
+- `factory-skill-builder/scripts/render_skill_from_spec.cjs`
+- `factory-skill-builder/scripts/validate_platform_skill.cjs --spec <spec.yaml>`
+- `factory-skill-builder/scripts/build_skill_from_spec.cjs`
+
+这条链路能生成最小 Skill 骨架并完成平台校验。
+只有显式传入 `--package`，才会继续产出打包结果。
+在干净环境里，先进入 `factory-skill-builder/` 并执行 `npm install`，准备 `yaml` 依赖。
+如果要打包，还需要系统里至少存在 `zip` 或 `tar` 其中一个命令。
+当前生成链会把 `utils/template/` 中的统一协议模板和所选平台模板复制到 `references/templates/`，把模板选择结果一并固化进产物。
+更完整的发布器和平台专用安装器仍然属于后续补充项。
+
+但在收口前必须继续给出：
+
+- 当前平台是否属于 `supported_public`、`supported_authoring_only` 或 `supported_local_only`
+- 如果不是 `supported_public`，是否已经停在作者规范或本地激活边界
+- 如果是 `molili`，是否已经写出源目录、激活目录、软链接优先和调用验收步骤
 
 ### 4. 装配原子能力
 
-读取 `atomic-capabilities/index.md` 和相应能力说明，把需要的能力映射到目标方案。
+读取 `atomic-capability/index.md` 和相应能力说明，把需要的能力映射到目标方案。
 处理原则：
 
 - 能复用已有原子能力，就不要重复发明
@@ -100,6 +138,7 @@
 - 相关要求是否已经写入正式 `prd`
 - 是否已经形成设计文档
 - 是否已经进入 `output/` 构建产物
+- `output/` 目录是否符合统一契约
 - 可提交的 git 子仓库是否已经完成提交
 - 是否已经经过一次独立审查
 
@@ -111,7 +150,7 @@
 <skill-name>/
   SKILL.md
   agents/openai.yaml
-  references/ 或 ref/
+  references/
   platform-manifests/
   scripts/ 或 utils/cli/
   assets/            # 只有确实需要时再创建
@@ -132,7 +171,8 @@
 6. 是否已经明确目标平台对应的目录、元数据和安装路径要求
 7. `molili` 是否仍被单独对待
 8. benchmark 若被启用，比较对象和输出格式是否明确
+9. 平台支持等级是否和 `platform-support-matrix.md` 保持一致
 
 ## 结束条件
 
-本阶段结束时，应该得到一份稳定的构建计划、模板选择结果和交付边界说明。
+本阶段结束时，应该得到一份稳定的构建计划、模板选择结果、交付边界说明，以及在条件满足时生成出的最小 Skill 骨架。

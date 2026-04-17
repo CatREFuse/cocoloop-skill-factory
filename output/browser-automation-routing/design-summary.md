@@ -39,5 +39,5 @@
 
 - `prd.md` 和 `codex-prd`：承接正式需求
 - 主 Skill 与 `ref/`：承接调研和设计流程规则
-- `atomic-capabilities/browser-access/`：承接路线决策与安装指南
+- `atomic-capability/browser-access/`：承接路线决策与安装指南
 - `output/browser-automation-routing/`：承接本次收口证据

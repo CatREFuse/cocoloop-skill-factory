@@ -167,14 +167,16 @@ def normalize_result_item(item: Any, source: str) -> dict[str, Any]:
         or ""
     )
     url = (
-        item.get("url")
+        item.get("html_url")
+        or item.get("url")
         or item.get("link")
         or item.get("href")
         or item.get("download_url")
         or ""
     )
     score = (
-        item.get("score")
+        item.get("stargazers_count")
+        or item.get("score")
         or item.get("relevance")
         or item.get("rank")
         or item.get("recommend_index")

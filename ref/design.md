@@ -13,6 +13,7 @@
 设计阶段默认接收这些输入：
 
 - 调研阶段收口后的需求结果
+- 当前任务域与对应预设
 - 环境检测结果
 - `cocoloop` 与 `clawhub` 搜索结果，或其降级记录
 - 用户已有的参考 Skill、仓库或流程样例
@@ -23,6 +24,7 @@
 ### 先展开
 
 围绕用户目标提出两到三条可行路线。
+如果当前需求已经匹配到任务域预设，先把预设里的默认执行面作为第一层候选。
 第一版优先使用这三种路线做比较：
 
 1. 直接复用现成 Skill
@@ -53,6 +55,12 @@
 - 是否适合作为参考后改造
 - 是否只适合借鉴其中一部分能力
 - 是否应放弃该候选
+
+如果当前需求已经判定主任务域，设计阶段还要回答：
+
+- 候选方案是否覆盖该任务域的核心高频任务
+- 候选方案是否符合该任务域默认执行面
+- 如果不符合，偏差是能力缺口，还是执行面不匹配
 
 ### 本地拉取与深度分析要求
 
@@ -125,7 +133,13 @@
 ## 原子能力判断
 
 设计阶段要把能力拆成可组合单元，便于后续装配。
-优先从 `atomic-capabilities/index.md` 中选取能力，再决定是否引入外部方案。
+优先顺序改为：
+
+1. 当前任务域预设
+2. `atomic-capability/index.md`
+3. 外部方案或第三方工具
+
+优先从 `atomic-capability/index.md` 中选取能力，再决定是否引入外部方案。
 
 如果需求里已经确认需要视觉风格约束、图片生成流程或写作风格约束，也要在这里明确：
 
@@ -147,9 +161,12 @@
 ```text
 - chosen_route
 - why_this_route
+- chosen_execution_plane
 - scope_now
 - scope_later
 - target_platforms
+- primary_domain
+- peer_domains
 - template_direction
 - capability_plan
 - dependency_strategy

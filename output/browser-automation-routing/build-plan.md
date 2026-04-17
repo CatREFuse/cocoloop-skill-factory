@@ -42,8 +42,8 @@ browser-automation-routing/
 
 至少更新：
 
-- `atomic-capabilities/browser-access/index.md`
-- 新增 `atomic-capabilities/browser-access/opencli-browser-bridge.md`
+- `atomic-capability/browser-access/index.md`
+- 新增 `atomic-capability/browser-access/opencli-browser-bridge.md`
 
 ### 5. 生成输出产物
 
