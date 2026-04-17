@@ -3,7 +3,7 @@ spec_version: "0.1"
 skill_identity:
   id: "cocoloop.preset-system-hardening"
   name: "Preset System Hardening"
-  version: "0.1.0"
+  version: "0.2.0"
   owner: "tanshow"
   homepage: "local://cocoloop-skill-factory/output/preset-system-hardening"
   target_platforms:

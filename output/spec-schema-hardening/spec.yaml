@@ -3,7 +3,7 @@ spec_version: "0.1"
 skill_identity:
   id: "cocoloop.spec-schema-hardening"
   name: "Spec Schema Hardening"
-  version: "0.1.0"
+  version: "0.2.0"
   owner: "tanshow"
   homepage: "codex-prd/spec-schema-and-protocol.md"
   target_platforms:
