@@ -1,5 +1,14 @@
 # PPT 生成
 
+## 当前定位
+
+这个能力现在默认作为 `structured-visual-storytelling` 的 `ppt` adapter 使用。
+共享规则优先读取：
+
+- `../structured-visual-storytelling/index.md`
+- `../structured-visual-storytelling/shared-rules.md`
+- `../structured-visual-storytelling/output-adapters.md`
+
 ## 适用场景
 
 这个能力用于生成或修改演示稿，包括：
@@ -25,6 +34,11 @@
 - work / evidence
 - angle
 - CTA
+
+这一步也要先做问题预算。
+如果用户提供的是零散口述，先规划最小访谈集，默认总问题数不得超过 10 个。
+优先把主题、受众、核心材料、输出格式和风格来源问清，再决定是否补 speaker、CTA 或其他细节。
+如果已有文档、摘要、提纲或历史 deck，可直接提取，不要重复访谈。
 
 最好的参考是 `ai-presentation-maker`。
 
@@ -53,6 +67,12 @@
 - speaker 信息
 - 页数范围或节奏
 - 风格与品牌要求
+- 风格来源
+  - 用户指定风格
+  - 用户提供 `DESIGN.md`
+  - 用户详细描述
+  - 从 `ref/design-md/` 本地参考库中选起点
+- 推荐在统一 spec 中继续固化 `design_md`，并在最终 Skill 中输出 `references/design.md`
 - 是否必须可编辑
 - 输出格式偏好
 
@@ -70,6 +90,12 @@
 ### 1. 先做 brief，再做 deck
 
 这类任务最不稳定的做法，就是直接从主题跳到第一页。
+
+如果任务强调视觉表达，再补一条硬规则：
+
+- 在风格来源未明确前，不进入高保真页面设计
+- 用户没有品牌规范时，优先让用户从 `ref/design-md/` 中选一个风格起点
+- 首批官方预设建议优先在 IBM、Stripe、Notion、Framer、Figma、Nothing、Apple 中选择
 
 推荐最小 brief：
 
@@ -107,6 +133,31 @@
 - notes
 
 这一步决定能否稳定并行生成、能否切换渲染器、能否做校验。
+
+### 2.5 演示稿的版式与信息图硬规则
+
+如果任务目标是正式汇报、毕业答辩、产品发布或研究总结，不能只交付“标题 + 长条目列表”。
+默认要把信息拆成更强的视觉层次。
+
+建议至少满足这些规则：
+
+- 每页都要有明确的文字层级，例如 kicker、标题、摘要、数字、注释，不要让整页退化成同一层级的长条目
+- 每个内容页至少出现一种非纯文本的信息图元素
+  - metric card
+  - process flow
+  - comparison block
+  - timeline
+  - matrix
+  - chart
+  - module diagram
+- 单页正文不要退化成 5 到 8 条长 bullet 的堆砌
+- 标题负责结论，正文负责说明，数字和短句负责强调，注释负责补充边界
+- 如果素材不足以支撑图表，也要用结构图、对比卡、数字块和关系箭头把信息可视化
+
+对于毕业答辩或研究汇报，建议继续加一条默认要求：
+
+- 全 deck 至少要有一页方法流程图、一页结果对比图、一页指标卡或核心数字页
+- 全 deck 至少有 20% 的比例出现插图、图标标识或者网络搜索相关图片
 
 ### 3. HTML slides 和 `.pptx` 分开看
 
@@ -168,6 +219,7 @@
 6. resources / CTA
 
 收集的核心目标不是聊天，而是为每个 slide 找到真实来源。
+如果前 5 到 8 个问题里已经能形成稳定 brief，就直接收口做 outline，不要把访谈拖成完整问卷。
 
 ### 文本驱动型
 
@@ -190,9 +242,10 @@
 
 1. 定 angle
 2. 定 narrative arc
-3. 列 core slides
-4. 判断 situational slides
-5. 定 closing 和 CTA
+3. 定 style source
+4. 列 core slides
+5. 判断 situational slides
+6. 定 closing 和 CTA
 
 建议最少要有：
 
@@ -374,6 +427,7 @@
 ## 与主流程的关系
 
 这个能力最适合挂在 `document_artifacts` 主域下，也可以和 `docs_research` 或 `frontend_design` 组合使用。
+当任务属于更广义的视觉叙事产物时，先走 `structured-visual-storytelling`，再落到这里。
 
 如果进入正式设计比较，建议同时回看：
 

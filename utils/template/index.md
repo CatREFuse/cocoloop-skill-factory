@@ -50,6 +50,8 @@
 补充要求：
 
 - `spec.yaml` 先于平台模板生成
+- 正式名称使用 `skill_identity.slug`，展示名称使用 `skill_identity.display_name`
+- 如果 `spec.yaml` 中 `output_profile.has_visual_output` 为真，最终 Skill 需要同时生成 `references/design.md` 与 `references/design-md/`
 - 任务域预设先于平台模板选择
 - 平台模板承接 `spec.yaml` 的结果承诺，不重复定义核心边界
 - 研究证据的长分析正文继续放在研究产物中，不直接塞进模板主体

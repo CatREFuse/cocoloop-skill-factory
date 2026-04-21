@@ -40,6 +40,7 @@ atomic-capability/
   file-ops/
   infographic-generation/
   presentation-generation/
+  structured-visual-storytelling/
   search-and-info/
   subskill-invocation/
   template-mapping/
@@ -61,6 +62,7 @@ atomic-capability/
 | 数据解析与转换 | JSON、YAML、CSV、Markdown、表格之间互转 | 本地静态 | [data-parse-transform/index.md](./data-parse-transform/index.md) |
 | 外部服务接入 | API、鉴权、回调、限流、配置接入 | 本地静态 | [external-service/index.md](./external-service/index.md) |
 | 浏览器访问 | 页面查看、信息提取、表单与页面操作 | 本地静态 | [browser-access/index.md](./browser-access/index.md) |
+| 结构化视觉叙事产物 | PPT、信息图、展示图、报告页等视觉叙事型产物的共享生产主线 | 本地静态 | [structured-visual-storytelling/index.md](./structured-visual-storytelling/index.md) |
 | 信息图生成 | 长文信息图、视觉卡片、单页 poster、图卡导出 | 本地静态 | [infographic-generation/index.md](./infographic-generation/index.md) |
 | PPT 生成 | 演示稿 brief、大纲、HTML slides、`.pptx` 导出 | 本地静态 | [presentation-generation/index.md](./presentation-generation/index.md) |
 | 文档生成 | 需求文档、设计文档、Skill 文档、说明文档 | 本地静态 | [document-generation/index.md](./document-generation/index.md) |
@@ -76,22 +78,18 @@ atomic-capability/
 - 能在本地文件层完成的，不先上外部服务。
 - 模板映射负责落地方向，不负责直接替代其他能力。
 
-## 信息图与 PPT 的新规则
+## 视觉叙事产物的新规则
 
-从近期深拆结果看，这两类能力都不能只被理解成“生成最终成品”。
-后续使用时默认按下面的结构去看：
+从近期深拆结果看，信息图、PPT、展示图和报告型页面都不能只被理解成“生成最终成品”。
+后续使用时默认先进入 `structured-visual-storytelling`，再分流到不同 adapter。
 
-### 信息图
+默认顺序：
 
-- 先判断是分析驱动型信息图，还是模板驱动型视觉卡片
-- 先形成内容中间层，再进入版式和导出
-- HTML poster 和 PNG 导出应视为独立链路
-
-### PPT / 演示稿
-
-- 先区分输入层、outline 层、render 层
-- HTML slides 和 `.pptx` 是两条平行输出链路
-- factual validation 和 overflow check 也是能力的一部分
+1. 先结构化内容
+2. 再确认 `design_md`
+3. 再检查文字层级
+4. 再规划信息图元素
+5. 再选择 `ppt`、`web_infographic`、`showcase_graphic` 等 adapter
 
 ## 动态能力扩展约定
 

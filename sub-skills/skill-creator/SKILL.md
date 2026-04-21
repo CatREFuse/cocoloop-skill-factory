@@ -1,5 +1,5 @@
 ---
-name: skill-creator
+name: cocoloop-sub-skill-creator
 description: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Gemini CLI's capabilities with specialized knowledge, workflows, or tool integrations.
 ---
 
@@ -32,8 +32,15 @@ Skills are modular, self-contained packages that extend Gemini CLI's capabilitie
 在工厂场景里，建议按下面顺序组织内容：
 
 1. 先用任务域预设确定 references 和 assets 的最小集合
+2. 如果目标产物属于视觉叙事型产物，先读取 `atomic-capability/structured-visual-storytelling/`，确定共享规则和 adapter
 2. 再根据平台模板决定目录结构
 3. 再把脚本、references、assets 放进最小可维护范围
+
+补充规则：
+
+- 如果已经确认 `visual_storytelling.enabled`，不要只按单一产物模板写 Skill
+- 先保留共享的文字层级、信息图元素和 `design_md` 规则
+- 再在 `references/` 中补具体 adapter 的落地细则
 
 如果一个 Skill 明显跨多个任务域，优先把主任务域写进 `SKILL.md` 主体，把补充域内容拆到 `references/`，避免主文件继续膨胀。
 

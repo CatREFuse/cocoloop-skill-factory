@@ -1,0 +1,222 @@
+"spec_version": "0.1"
+"skill_identity":
+  "id": "cocoloop.graduate-defense-ppt"
+  "name": "Graduate Defense PPT"
+  "version": "0.1.0"
+  "owner": "tanshow"
+  "homepage": "local://cocoloop-skill-factory/output/design-md-hardening/test-graduate-defense"
+  "target_platforms":
+    - "platform": "codex"
+      "support_level": "supported_public"
+      "standard_source": "https://developers.openai.com/codex/skills"
+      "validation_mode": "public_validator"
+      "publish_mode": "plugin"
+      "note": "主流程验证平台"
+    - "platform": "claude_code"
+      "support_level": "supported_public"
+      "standard_source": "https://code.claude.com/docs/en/skills"
+      "validation_mode": "public_validator"
+      "publish_mode": "plugin_skill"
+      "note": "兼容验证平台"
+"intent":
+  "goal": "把研究主题、方法、结果与答辩要求整理成适合研究生毕业答辩的演示稿结构，并在可用时继续导出 PPT"
+  "target_user": "正在准备硕士或博士毕业答辩的学生"
+  "use_scenarios":
+    - "根据论文摘要与实验结果生成毕业答辩提纲"
+    - "把研究背景、方法、实验结果和结论整理成页面级答辩结构"
+    - "在有视觉要求时使用默认设计风格生成正式答辩稿"
+"scope":
+  "must_have":
+    - "收集答辩主题、研究问题、方法、结果和页数约束"
+    - "生成封面、目录、背景、方法、结果、创新点、结论与致谢的答辩结构"
+    - "启用 design_md 并输出默认设计入口"
+    - "在无法导出 .pptx 时退回结构化替代结果"
+  "nice_to_have":
+    - "根据专业方向调整页面顺序和重点"
+    - "补充每页讲述提示"
+  "excluded":
+    - "不自动伪造实验数据"
+    - "不处理学院官方模板下载"
+    - "不保证当前环境一定能直接导出 .pptx"
+"inputs":
+  - "name": "research_materials"
+    "required": true
+    "description": "论文摘要、研究问题、方法、实验结果、创新点和结论"
+    "constraints":
+      "note": "至少需要能支撑一份完整答辩逻辑"
+      "type": "notes_or_docs"
+      "allowed_values": []
+      "source": "user_provided"
+  - "name": "defense_constraints"
+    "required": true
+    "description": "答辩时长、目标页数、学校或导师要求、语言偏好"
+    "constraints":
+      "note": "缺失时只输出通用默认结构"
+      "type": "structured_notes"
+      "allowed_values": []
+      "source": "user_provided"
+"outputs":
+  - "name": "defense_slides"
+    "format": "pptx_or_structured_slides"
+    "description": "适合研究生毕业答辩的演示稿"
+    "minimum_contents":
+      - "title"
+      - "agenda"
+      - "background"
+      - "method"
+      - "results"
+      - "contribution"
+      - "conclusion"
+      - "thanks"
+"research_gate":
+  "target_environment":
+    "status": "ready"
+    "current_environment": "codex authoring workspace on macOS"
+    "target_environment": "codex authoring workspace on macOS"
+    "current_environment_is_target": true
+    "note": "当前版本先在本地环境验证答辩 Skill 结构"
+  "implementation_approach":
+    "status": "ready"
+    "selected_execution_plane": "Skill + CLI"
+    "note": "通过 Skill 入口结合本地 builder / validator 完成样例验证"
+"interaction_contract":
+  "research":
+    "ask_one_question_per_turn": true
+    "max_questions": 10
+    "count_confirmation_questions": true
+    "overflow_strategy": "write_open_gaps_then_continue"
+"success_criteria":
+  - "结构覆盖完整的毕业答辩主线"
+  - "默认设计输入可被最终 Skill 读取"
+  - "无法导出 .pptx 时仍能交付结构化替代结果"
+"failure_modes":
+  - "mode": "missing_research_signal"
+    "description": "用户提供的信息不足以支撑完整答辩结构"
+    "user_impact": "输出只能停留在通用占位稿"
+  - "mode": "ppt_renderer_unavailable"
+    "description": "当前环境缺少可直接使用的 PPT 导出依赖"
+    "user_impact": "无法得到 .pptx，只能得到结构化替代结果"
+"fallback_policy":
+  "allowed": true
+  "summary": "当缺少可用 PPT renderer 时，退回到结构化 slides 结果，并保留后续继续导出所需的页面层级"
+  "fallback_outputs":
+    - "slides.md"
+"dependencies":
+  - "name": "design-md library"
+    "kind": "reference"
+    "required": true
+    "note": "提供默认设计起点"
+  - "name": "factory-skill-builder"
+    "kind": "builder"
+    "required": true
+    "note": "负责把 spec 渲染成 Skill"
+"design_md":
+  "enabled": true
+  "applies_to":
+    - "ppt"
+    - "showcase_graphic"
+  "source_mode": "preset"
+  "preset_id": "ibm"
+  "preset_ref": "cocoloop-skill-factory/ref/design-md/ibm.md"
+  "user_provided_ref": ""
+  "custom_style_notes":
+    - "强调学术正式感、清晰层级和结果页可读性"
+    - "默认背景风格偏理性、结构化、图表友好"
+  "official_library_ref": "cocoloop-skill-factory/ref/design-md/index.md"
+  "prompt_user_to_use_first": true
+  "output_path": "references/design.md"
+"research_evidence":
+  "coverage_status":
+    "status": "covered"
+    "note": "已覆盖最小渲染链、design_md 预设与导出降级策略"
+  "evidence_refs":
+    - "source_type": "workspace_doc"
+      "mechanism": "builder_entry"
+      "solution_name": "factory construction docs"
+      "ref": "construction.md"
+      "note": "确认 build_skill_from_spec.cjs 是默认构建入口"
+    - "source_type": "workspace_doc"
+      "mechanism": "spec_protocol"
+      "solution_name": "spec template"
+      "ref": "cocoloop-skill-factory/utils/template/spec-template.yaml"
+      "note": "提供最小结构化字段"
+    - "source_type": "workspace_doc"
+      "mechanism": "design_preset"
+      "solution_name": "design-md index"
+      "ref": "cocoloop-skill-factory/ref/design-md/index.md"
+      "note": "确认 IBM 属于官方预设并适合结构化演示稿"
+  "open_gaps":
+    - "gap_type": "ppt_export_runtime"
+      "impact_level": "medium"
+      "note": "当前环境缺少现成 pptx 生成依赖，只能先验证结构化替代物"
+"primary_domain": "document_artifacts"
+"peer_domains":
+  - "docs_research"
+  - "frontend_design"
+"domain_supplements":
+  "engineering_delivery": {}
+  "frontend_design":
+    "style_constraints":
+      - "默认采用 IBM 风格作为答辩稿背景起点"
+  "browser_ui_testing": {}
+  "document_artifacts":
+    "artifact_type": "graduate_defense_ppt"
+    "required_sections":
+      - "title"
+      - "agenda"
+      - "background"
+      - "method"
+      - "results"
+      - "contribution"
+      - "conclusion"
+      - "thanks"
+  "docs_research":
+    "research_constraints":
+      - "不生成脱离研究材料的虚构论证"
+  "workflow_integration": {}
+  "deploy_platform_ops": {}
+  "security_risk_review": {}
+"adapters":
+  "codex":
+    "status": "draft"
+    "entry_points":
+      - "SKILL.md"
+      - "references/design.md"
+    "mapping_notes":
+      - "先收集研究材料，再生成答辩结构"
+      - "视觉任务先读 references/design.md"
+    "known_gaps":
+      - "原生 .pptx 导出依赖未内置"
+  "claude_code":
+    "status": "draft"
+    "entry_points":
+      - "SKILL.md"
+      - "references/design.md"
+    "mapping_notes":
+      - "保持和 codex 一致的答辩稿流程与设计入口"
+    "known_gaps":
+      - "原生 .pptx 导出依赖未内置"
+  "openclaw":
+    "status": "planned"
+    "entry_points": []
+    "mapping_notes": []
+    "known_gaps": []
+  "copaw":
+    "status": "planned"
+    "entry_points": []
+    "mapping_notes": []
+    "known_gaps": []
+  "molili":
+    "status": "planned"
+    "entry_points": []
+    "mapping_notes": []
+    "known_gaps": []
+    "source_root": ""
+    "active_root": ""
+    "activation_strategy": ""
+    "verification_steps": []
+  "hermes_agent":
+    "status": "planned"
+    "entry_points": []
+    "mapping_notes": []
+    "known_gaps": []

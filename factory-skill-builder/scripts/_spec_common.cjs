@@ -68,6 +68,10 @@ function slugify(value) {
     .replace(/-{2,}/g, '-');
 }
 
+function isValidSkillSlug(value) {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(value || '').trim());
+}
+
 function titleCase(value) {
   return String(value || '')
     .split(/[-_\s]+/)
@@ -78,6 +82,7 @@ function titleCase(value) {
 
 function getSkillSlug(spec) {
   const candidates = [
+    spec?.skill_identity?.slug,
     spec?.skill_identity?.id,
     spec?.skill_identity?.name,
     spec?.intent?.goal,
@@ -91,6 +96,7 @@ function getSkillSlug(spec) {
 
 function getDisplayName(spec) {
   return (
+    spec?.skill_identity?.display_name ||
     spec?.skill_identity?.name ||
     titleCase(spec?.skill_identity?.id || '') ||
     titleCase(getSkillSlug(spec))
@@ -188,6 +194,7 @@ module.exports = {
   loadYamlFile,
   mkdirp,
   renderMarkdownList,
+  isValidSkillSlug,
   slugify,
   titleCase,
   toFrontmatter,

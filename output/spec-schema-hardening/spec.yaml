@@ -1,6 +1,8 @@
 spec_version: "0.1"
 
 skill_identity:
+  slug: "spec-schema-hardening"
+  display_name: "Schema Hardening"
   id: "cocoloop.spec-schema-hardening"
   name: "Spec Schema Hardening"
   version: "0.2.0"
@@ -68,6 +70,35 @@ outputs:
     minimum_contents:
       - "包含 core 字段"
       - "包含 domain_supplements 和 adapters"
+
+output_profile:
+  has_visual_output: false
+  visual_output_types: []
+
+research_gate:
+  skill_identity:
+    status: "ready"
+    cocoloop_checked: true
+    clawhub_checked: true
+    slug_available: true
+    note: "示例名称已完成双源去重"
+  target_environment:
+    status: "ready"
+    current_environment: "codex / claude code / openclaw authoring analysis workspace"
+    target_environment: "multi-platform skill authoring workflow"
+    current_environment_is_target: false
+    note: "当前环境用于协议设计，目标环境是多平台 authoring 适配"
+  implementation_approach:
+    status: "ready"
+    selected_execution_plane: "Skill + CLI"
+    note: "模板与协议需要配合本地 builder / validator 脚本验证"
+
+interaction_contract:
+  research:
+    ask_one_question_per_turn: true
+    max_questions: 10
+    count_confirmation_questions: true
+    overflow_strategy: "write_open_gaps_then_continue"
 
 success_criteria:
   - "spec.yaml 已经进入模板体系"

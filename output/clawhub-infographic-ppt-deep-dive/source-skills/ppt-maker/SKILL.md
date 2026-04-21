@@ -1,4 +1,3 @@
-
 ---
 name: ppt-maker
 description: "专业级PPT一键生成。Markdown创建幻灯片，支持自动图表（饼图/柱状图/折线图）、多主题、有序/无序列表、引用块、代码块、表格、感谢页自动识别。"
@@ -283,4 +282,3 @@ node ~/.openclaw/workspace/skills/ppt-maker/scripts/ppt-maker.js -i slides.md -o
 
 - 脚本：`~/.openclaw/workspace/skills/ppt-maker/scripts/ppt-maker.js`
 - 依赖：`pptxgenjs`（已安装）
-

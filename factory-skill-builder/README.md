@@ -23,6 +23,21 @@ npm install
 当前最小依赖是 `yaml`，供 `spec.yaml` 解析与 frontmatter 生成使用。
 打包阶段还要求系统中至少可用 `zip` 或 `tar` 其中一个命令。
 
+## 元数据约束
+
+所有由这条生成链产出的 `SKILL.md`，frontmatter 都会强制带上：
+
+```yaml
+generated_by_cocoloop: true
+```
+
+如需巡检或补写历史产物，可以单独运行：
+
+```bash
+node scripts/ensure_generated_by_cocoloop.cjs <skill-or-directory> --check
+node scripts/ensure_generated_by_cocoloop.cjs <skill-or-directory> --fix
+```
+
 ## 最小命令
 
 ```bash

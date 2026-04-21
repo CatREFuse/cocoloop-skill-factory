@@ -1,6 +1,8 @@
 spec_version: "0.1"
 
 skill_identity:
+  slug: "preset-system-hardening"
+  display_name: "Preset Hardening"
   id: "cocoloop.preset-system-hardening"
   name: "Preset System Hardening"
   version: "0.2.0"
@@ -60,6 +62,35 @@ outputs:
     description: "任务域门禁和 output 契约"
     minimum_contents:
       - "包含字段责任矩阵和目录契约"
+
+output_profile:
+  has_visual_output: false
+  visual_output_types: []
+
+research_gate:
+  skill_identity:
+    status: "ready"
+    cocoloop_checked: true
+    clawhub_checked: true
+    slug_available: true
+    note: "示例名称已完成双源去重"
+  target_environment:
+    status: "ready"
+    current_environment: "codex / claude code authoring workspace on macOS"
+    target_environment: "codex / claude code authoring workspace on macOS"
+    current_environment_is_target: true
+    note: "当前任务在本地 authoring 环境内完成流程治理"
+  implementation_approach:
+    status: "ready"
+    selected_execution_plane: "Skill-only"
+    note: "这一轮先固化文档、预设和协议治理，不引入额外执行面"
+
+interaction_contract:
+  research:
+    ask_one_question_per_turn: true
+    max_questions: 10
+    count_confirmation_questions: true
+    overflow_strategy: "write_open_gaps_then_continue"
 
 success_criteria:
   - "任务域识别成为 research 阶段硬门槛"

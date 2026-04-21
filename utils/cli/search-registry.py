@@ -34,6 +34,10 @@ COCOLOOP_SEARCH_API = "https://api.cocoloop.cn/api/v1/store/skills?page=1&page_s
 GITHUB_SEARCH_API = "https://api.github.com/search/repositories?q={query}&per_page={limit}&sort=stars&order=desc"
 
 
+def slugify(value: str) -> str:
+    return re.sub(r"-{2,}", "-", re.sub(r"[^a-z0-9]+", "-", value.strip().lower())).strip("-")
+
+
 def fetch_cocoloop_api(query: str, limit: int) -> dict[str, Any]:
     url = COCOLOOP_SEARCH_API.format(
         query=urllib.parse.quote(query, safe=""),
@@ -175,6 +179,30 @@ def normalize_clawhub_text(raw_text: str) -> list[dict[str, Any]]:
     return items
 
 
+def extract_slug_candidates(item: dict[str, Any]) -> list[str]:
+    candidates: list[str] = []
+
+    def add_candidate(value: Any) -> None:
+        if not isinstance(value, str):
+            return
+        normalized = slugify(value)
+        if normalized and normalized not in candidates:
+            candidates.append(normalized)
+
+    for key in ("slug", "id", "name", "skill_name", "title", "label"):
+        add_candidate(item.get(key))
+
+    raw = item.get("raw")
+    if isinstance(raw, dict):
+        for key in ("slug", "id", "name", "skill_name", "title", "label"):
+            add_candidate(raw.get(key))
+
+    for tag in item.get("tags") or []:
+        add_candidate(tag)
+
+    return candidates
+
+
 def build_payload(args: argparse.Namespace) -> dict[str, Any]:
     source = args.source
     if not args.query:
@@ -217,6 +245,14 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
         normalized = normalize_text_results(execution["raw_text"], source)
         raw_format = "text" if execution["raw_text"].strip() else "empty"
 
+    exact_slug = slugify(args.exact_slug or "")
+    exact_matches = []
+    if exact_slug:
+        exact_matches = [
+            item for item in normalized
+            if exact_slug in extract_slug_candidates(item)
+        ]
+
     status = "ok" if execution["ok"] else "degraded"
     degradation = None
     if not execution["available"]:
@@ -245,6 +281,9 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
             "ok": execution["ok"],
             "returncode": execution["returncode"],
         },
+        "exact_match_found": bool(exact_matches),
+        "exact_matches": exact_matches,
+        "exact_slug": exact_slug,
         "raw_format": raw_format,
         "raw_text": execution["raw_text"],
         "normalized_results": normalized,
@@ -256,6 +295,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run cocoloop/clawhub/github search and normalize the results as JSON.")
     parser.add_argument("--source", choices=("cocoloop", "clawhub", "github"), required=True)
     parser.add_argument("--query", default="", help="Search query text.")
+    parser.add_argument("--exact-slug", default="", help="Optional slug to match exactly inside normalized results.")
     parser.add_argument("--limit", type=int, default=10, help="Maximum number of search results to request.")
     args = parser.parse_args()
 

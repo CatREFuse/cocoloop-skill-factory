@@ -27,8 +27,11 @@
 1. 先说明 `skill-factory` 能做什么，以及当前会从需求调研开始。
 2. 浏览当前工作区、仓库和用户给出的上下文，找已有约束。
 3. 运行 `python3 utils/cli/detect-environment.py`，如果当前目录不在 skill 根目录，就改用 `python3 cocoloop-skill-factory/utils/cli/detect-environment.py`，拿到当前环境线索。
-4. 判断外部 `brainstorming` 是否可用；可用就优先复用，不可用就回退到 `sub-skills/brainstorm/SKILL.md`。
-5. 把问答和阶段结论整理成文档笔记，供设计阶段引用。
+4. 先确认“当前环境是否就是目标运行环境”；如果不是，继续追问目标平台、目标系统和关键运行前提。
+5. 在环境结论没有确认前，不进入 Skill 正文、模板、脚手架、实现步骤或构建命令的撰写。
+6. 继续确认正式名称和展示名称；正式名称必须完成 `cocoloop` 与 `clawhub` 双源去重。
+7. 判断外部 `brainstorming` 是否可用；可用就优先复用，不可用就回退到 `sub-skills/brainstorm/SKILL.md`。
+8. 把问答和阶段结论整理成文档笔记，供设计阶段引用。
 
 ## 任务域路由
 
@@ -66,8 +69,40 @@
 - 如果某个问题涉及多个子维度，拆成连续轮次推进
 - 禁止在同一次回复中抛出多个问题清单
 
+### 问题预算：先规划，再提问（强制要求）
+
+**正式进入调研后，要先规划问题预算，默认总问题数不得超过 10 个。**
+
+- 把必采集字段先按优先级排成最小问题集，再开始发问
+- 总问题数包含开放式问题、选项题、路径题和确认题
+- 优先复用当前上下文、环境检测、任务域预设和默认值，减少新增问题
+- 如果用户开场已经给了高质量 brief，需要主动跳过已覆盖字段
+- 当问题数来到第 6 到第 8 个时，优先做阶段收口，而不是继续发散
+- 如果继续追问会超过 10 个，必须把剩余不确定项转写为 `open_gaps`、默认假设或后续设计待确认项
+- 不允许为了“问全”而拉长访谈；当前版本强调稳定收口，不强调穷尽式盘问
+
 **为什么这样做：**
 一次性抛出所有问题会让用户感到压力，导致回复质量下降或选择性忽略部分问题。分步询问可以保持对话的连贯性和质量。
+问题预算则用于限制访谈长度，避免最终产物 Skill 在真实使用时变成高摩擦问卷。
+
+### 环境 gate：先确认运行环境，再开始写（强制要求）
+
+**在目标运行环境没有确认前，不允许开始写 Skill 正文、模板、脚手架、实现步骤或构建命令。**
+
+- 优先用环境检测拿到当前环境线索
+- 如果用户说“当前环境就是目标环境”，必须做一次显式确认
+- 如果目标环境与当前环境不同，必须同时记录当前环境和目标环境，不能混写
+- 如果环境仍不明确，只继续做澄清，不提前进入设计或构建表达
+- 环境确认可以借助默认值和确认题压缩轮数，但不能被跳过
+
+### 实现方式 gate：先确认执行面，再开始写（强制要求）
+
+**在实现方式没有确认前，不允许开始写脚本方案、adapter、manifest、依赖安装步骤或构建命令。**
+
+- 必须先确认当前任务最终采用哪种执行面
+- 当前允许的标准选项只有四种：`Skill-only`、`Skill + CLI`、`Skill + API/MCP`、`Skill + CLI + API/MCP`
+- 如果主任务域已有推荐执行面，需要先确认用户是接受默认推荐，还是切换到替代路径
+- 如果实现方式仍不明确，只继续做澄清，不进入实现表达
 
 ### 标准提问格式
 
@@ -163,6 +198,12 @@
 - 谁会用它
 - 在什么场景里使用
 
+### 名称身份
+
+- 正式名称，也就是最终 slug
+- 展示名称，也就是最终 display name
+- 正式名称是否已经完成 `cocoloop` 与 `clawhub` 双源去重
+
 ### 目标平台
 
 - 主平台是什么
@@ -180,6 +221,8 @@
 - 浏览器能力
 - 权限限制
 - 是否依赖账号、Cookie、API key 或本地工具
+- 当前环境是否就是目标运行环境
+- 如果不是，目标环境与当前环境的差异是什么
 
 ### 脚本偏好
 
@@ -225,6 +268,30 @@
 - 希望的视觉风格，例如简约、科技感、杂志感、卡通、品牌化、运行时可切换
 - 风格是否需要稳定复用，还是只要本次输出对齐
 - 用户是否希望预装或复用风格约束型 Skill
+- 风格来源到底是什么
+  - 用户明确指定风格名
+  - 用户提供自己的 `DESIGN.md`
+  - 用户用自然语言详细描述
+  - 用户从 `ref/design-md/` 本地风格参考中选择
+
+并且要同步完成一条隐式判断：
+
+- 当前任务是否包含任何可视化输出
+- 这个判断直接写入 `output_profile.has_visual_output`
+- 只要判断为真，后续 spec 就必须继续带上 `design_md`
+
+视觉优先任务的强制规则：
+
+- 如果任务涉及网站视觉、视觉优先页面、信息图、视觉卡片或演示稿，在风格来源未明确前，不进入具体设计
+- 如果用户没有自己的品牌规范，优先让用户从 `ref/design-md/` 中选起点，或要求用户补自然语言描述
+- 不允许默认使用“通用科技感”“通用高级感”这类空泛描述直接进入设计
+- 一旦确认了风格来源，继续收口到 `design_md` 字段，避免后续生成 Skill 时丢失设计输入
+
+本地 `DESIGN.md` 参考库入口：
+
+- `ref/design-md/index.md`
+- 当前官方预设：IBM、Stripe、Notion、Framer、Figma、Nothing、Apple
+- 扩展参考：Linear、Vercel
 
 当前版本默认推荐这些已知可用的风格相关 Skill：
 
@@ -334,8 +401,8 @@
 
 此时运行：
 
-1. `python3 utils/cli/search-registry.py --source cocoloop --query '...'`，如果当前目录不在 skill 根目录，就改用 `python3 cocoloop-skill-factory/utils/cli/search-registry.py --source cocoloop --query '...'`
-2. `python3 utils/cli/search-registry.py --source clawhub --query '...'`，如果当前目录不在 skill 根目录，就改用 `python3 cocoloop-skill-factory/utils/cli/search-registry.py --source clawhub --query '...'`
+1. `python3 utils/cli/search-registry.py --source cocoloop --query '...' --exact-slug '<slug>'`，如果当前目录不在 skill 根目录，就改用 `python3 cocoloop-skill-factory/utils/cli/search-registry.py --source cocoloop --query '...' --exact-slug '<slug>'`
+2. `python3 utils/cli/search-registry.py --source clawhub --query '...' --exact-slug '<slug>'`，如果当前目录不在 skill 根目录，就改用 `python3 cocoloop-skill-factory/utils/cli/search-registry.py --source clawhub --query '...' --exact-slug '<slug>'`
 3. `python3 utils/cli/search-registry.py --source github --query '...'`，如果当前目录不在 skill 根目录，就改用 `python3 cocoloop-skill-factory/utils/cli/search-registry.py --source github --query '...'`
 4. 如果这三类结果仍不足以支撑判断，再补通用社区或网页搜索
 
@@ -361,6 +428,8 @@
 - problem
 - audience
 - scenario
+- skill_identity.slug
+- skill_identity.display_name
 - target_platforms
 - environment
 - dependency_preference
@@ -368,12 +437,23 @@
 - delivery_goal
 - scriptable_scope
 - style_preference
+- output_profile
+- design_md
 - risk_notes
 - benchmark_intent
 - reference_search_status
 ```
 
 这份结果可以是 Markdown 摘要，也可以先落到统一 spec 草稿里。
+如果任务涉及网页、信息图、展示图或演示稿，建议在统一 spec 中同步收口：
+
+- `output_profile.has_visual_output`
+- `output_profile.visual_output_types`
+- `design_md.enabled`
+- `design_md.applies_to`
+- `design_md.source_mode`
+- `design_md.preset_id` 或 `design_md.user_provided_ref`
+- `design_md.custom_style_notes`
 建议同时保留：
 
 - `brainstorming-notes.md`
@@ -389,7 +469,9 @@
 1. 问题定义已经明确
 2. 目标平台已经明确，或收敛到可接受范围
 3. 依赖偏好和环境限制已经明确
-4. 搜索是否进入、进入后得到了什么，已经完成记录
-5. 当前版本的交付预期已经明确
+4. 当前环境与目标运行环境的关系已经明确
+5. 当前任务的实现方式已经明确
+6. 搜索是否进入、进入后得到了什么，已经完成记录
+7. 当前版本的交付预期已经明确
 
 结束后进入 `ref/design.md`。

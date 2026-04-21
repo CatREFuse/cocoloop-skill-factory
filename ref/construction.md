@@ -41,6 +41,7 @@
 统一 spec 建议至少包含：
 
 - 基本目标
+- 正式名称与展示名称
 - 目标平台
 - 触发方式
 - 输入输出
@@ -49,6 +50,7 @@
 - 模板计划
 - 交付物清单
 - benchmark 意图
+- 如果适用，继续补 `visual_storytelling`
 
 如果当前阶段已经形成 `spec.yaml`，还需要继续检查：
 
@@ -56,6 +58,8 @@
 - 是否已经明确调研覆盖状态和缺口
 - 是否已经写出主任务域、并列补充域和平台 adapter
 - 是否已经和当前预设包保持一致
+- 如果任务属于视觉叙事型产物，是否已经写出 `visual_storytelling` 和 `design_md`
+- 如果任务包含任何可视化输出，是否已经写出 `output_profile.has_visual_output`
 
 如果当前收口的是规则补充、流程加固或方法论修订，也不能只停留在 spec。
 需要同步生成一组可审查的样例产物，至少包括：
@@ -98,6 +102,12 @@
 在干净环境里，先进入 `factory-skill-builder/` 并执行 `npm install`，准备 `yaml` 依赖。
 如果要打包，还需要系统里至少存在 `zip` 或 `tar` 其中一个命令。
 当前生成链会把 `utils/template/` 中的统一协议模板和所选平台模板复制到 `references/templates/`，把模板选择结果一并固化进产物。
+如果 `spec.yaml` 中 `output_profile.has_visual_output` 为真，当前生成链还应继续：
+
+- 生成 `references/design.md` 作为最终 Skill 的默认设计入口
+- 复制 `ref/design-md/` 本地预设库到 `references/design-md/`
+- 在最终 `SKILL.md` 中提示用户先读 `references/design.md`，也允许用户替换成自己的 `DESIGN.md`
+
 更完整的发布器和平台专用安装器仍然属于后续补充项。
 
 但在收口前必须继续给出：

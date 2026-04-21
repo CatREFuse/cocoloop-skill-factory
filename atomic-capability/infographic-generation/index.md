@@ -1,5 +1,14 @@
 # 信息图生成
 
+## 当前定位
+
+这个能力现在默认作为 `structured-visual-storytelling` 的 `web_infographic` 或 `showcase_graphic` adapter 使用。
+共享规则优先读取：
+
+- `../structured-visual-storytelling/index.md`
+- `../structured-visual-storytelling/shared-rules.md`
+- `../structured-visual-storytelling/output-adapters.md`
+
 ## 适用场景
 
 这个能力用于生成单张或小批量的信息图、视觉卡片、知识海报、数据说明图和适合社媒传播的单页视觉产物。
@@ -54,6 +63,12 @@
 - 核心数字、引用、不能改写的文案
 - 目标平台或画幅
 - 风格方向
+- 风格来源
+  - 用户指定风格
+  - 用户提供 `DESIGN.md`
+  - 用户详细描述
+  - 从 `ref/design-md/` 本地参考库中选起点
+- 推荐在统一 spec 中继续固化 `design_md`，并在最终 Skill 中输出 `references/design.md`
 - 产物要求
   - HTML
   - PNG
@@ -73,6 +88,12 @@
 
 这类任务最稳定的做法都不是“原文 -> 最终图”。
 至少先形成一个中间层。
+
+进入视觉设计前，再加一条硬规则：
+
+- 风格来源没定时，只允许做结构层和 layout 家族判断，不直接做高保真视觉稿
+- 用户没有自己的品牌规范时，优先让用户从 `ref/design-md/` 里选一个起点
+- 首批官方预设建议优先在 IBM、Stripe、Notion、Framer、Figma、Nothing、Apple 中选择
 
 推荐最小中间层：
 
@@ -129,9 +150,10 @@
 
 1. outline
 2. layout
-3. style
-4. 插画或图标
-5. 输出格式
+3. style source
+4. style
+5. 插画或图标
+6. 输出格式
 
 这条规则来自 `article-to-infographic`，很适合高不确定性任务。
 
@@ -325,6 +347,7 @@
 ## 与主流程的关系
 
 这个能力最适合挂在 `frontend_design` 主域下，也可以作为 `document_artifacts` 的补充能力出现。
+当任务属于更广义的视觉叙事产物时，先走 `structured-visual-storytelling`，再落到这里。
 
 如果进入正式设计比较，建议同时回看：
 
