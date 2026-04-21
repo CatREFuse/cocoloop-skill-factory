@@ -51,6 +51,12 @@ function collectSkillMdFiles(targetPath) {
 }
 
 function walkForSkillMd(dirPath, skillFiles) {
+  const directSkillMdPath = path.join(dirPath, 'SKILL.md');
+  const directSpecPath = path.join(dirPath, 'spec.yaml');
+  if (fs.existsSync(directSkillMdPath) && fs.existsSync(directSpecPath)) {
+    skillFiles.push(directSkillMdPath);
+  }
+
   for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
     if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === '__pycache__') {
       continue;
@@ -58,10 +64,6 @@ function walkForSkillMd(dirPath, skillFiles) {
     const fullPath = path.join(dirPath, entry.name);
     if (entry.isDirectory()) {
       walkForSkillMd(fullPath, skillFiles);
-      continue;
-    }
-    if (entry.isFile() && entry.name === 'SKILL.md') {
-      skillFiles.push(fullPath);
     }
   }
 }
@@ -100,7 +102,9 @@ function main() {
   const args = parseArgs(process.argv.slice(2));
   const skillFiles = collectSkillMdFiles(args.targetPath);
   if (skillFiles.length === 0) {
-    throw new Error(`No SKILL.md files found under ${path.resolve(args.targetPath)}`);
+    throw new Error(
+      `No generated SKILL.md files found under ${path.resolve(args.targetPath)}. Expected directories that contain both SKILL.md and spec.yaml.`,
+    );
   }
 
   const invalidFiles = [];

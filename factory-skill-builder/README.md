@@ -38,6 +38,8 @@ node scripts/ensure_generated_by_cocoloop.cjs <skill-or-directory> --check
 node scripts/ensure_generated_by_cocoloop.cjs <skill-or-directory> --fix
 ```
 
+当目标是目录时，这个巡检只会处理同时包含 `SKILL.md` 和 `spec.yaml` 的生成产物目录，不会把手写主 Skill、子 Skill 或引用型 source skill 误判进去。
+
 ## 最小命令
 
 ```bash

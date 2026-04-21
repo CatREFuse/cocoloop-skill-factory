@@ -2,5 +2,5 @@
   - "~/.claude/skills/cocoloop-graduate-defense-ppt"
   - "./.claude/skills/cocoloop-graduate-defense-ppt"
 "support_level": "supported_public"
-"standard_source": "https://code.claude.com/docs/en/skills"
+"standard_source": "https://docs.anthropic.com/en/docs/claude-code/sub-agents"
 "validation_mode": "public_validator"
