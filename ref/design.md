@@ -91,6 +91,12 @@
 
 只要某个候选 Skill 进入设计比较范围，就必须先把它全量拉取到本地进行分析，不能只看搜索摘要、商店页面或简短介绍。
 
+优先使用 `reference-skill.py` 固化证据：
+
+- 本地候选：`python3 utils/cli/reference-skill.py fetch --source local --path <skill-dir> --out <evidence-dir> --slug <candidate-slug>`
+- GitHub 候选：`python3 utils/cli/reference-skill.py fetch --source github --url <repo-url> --out <evidence-dir> --slug <candidate-slug>`
+- 已有目录复查：`python3 utils/cli/reference-skill.py analyze --path <skill-dir> --markdown <analysis.md>`
+
 本地分析时至少要覆盖这些内容：
 
 - `SKILL.md` 的触发说明、流程结构和资源读取顺序

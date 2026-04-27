@@ -30,19 +30,17 @@ const {
   ensureArray,
   getDependencyNames,
   getDescription,
-  getDuplicatePlatforms,
   getDisplayName,
   getSkillSlug,
   getTargetPlatformMap,
   getWhenToUse,
-  isValidSkillSlug,
-  isKnownPlatform,
   loadYamlFile,
   mkdirp,
   renderMarkdownList,
   toFrontmatter,
   writeYamlFile,
 } = require('./_spec_common.cjs');
+const { assertRenderableSpec } = require('./schema_rules.cjs');
 
 function parseArgs(argv) {
   const args = { force: false };
@@ -76,200 +74,6 @@ function parseArgs(argv) {
   return args;
 }
 
-function validateRenderableSpec(spec) {
-  const rawSlug = String(spec?.skill_identity?.slug || '').trim();
-  const slug = getSkillSlug(spec);
-  const displayName = getDisplayName(spec);
-  const targets = ensureArray(spec?.skill_identity?.target_platforms).filter(
-    (item) => item && item.platform,
-  );
-  const duplicates = getDuplicatePlatforms(spec);
-  if (!slug) {
-    throw new Error('Spec is missing a renderable skill identity.');
-  }
-  if (!rawSlug) {
-    throw new Error('Spec skill_identity.slug is required for rendering.');
-  }
-  if (!isValidSkillSlug(rawSlug)) {
-    throw new Error(
-      'Spec skill_identity.slug must use lowercase English letters, digits, and hyphen separators only.',
-    );
-  }
-  if (!String(spec?.skill_identity?.display_name || '').trim()) {
-    throw new Error('Spec skill_identity.display_name is required for rendering.');
-  }
-  if (displayName.length > 20) {
-    throw new Error('Spec skill_identity.display_name must not exceed 20 characters.');
-  }
-  if (targets.length === 0) {
-    throw new Error('Spec must include at least one target platform.');
-  }
-  for (const target of targets) {
-    if (!isKnownPlatform(target.platform)) {
-      throw new Error(`Spec declares unknown platform "${target.platform}".`);
-    }
-  }
-  if (duplicates.length > 0) {
-    throw new Error(`Spec declares duplicate target platforms: ${duplicates.join(', ')}`);
-  }
-  if (!String(spec?.intent?.goal || '').trim()) {
-    throw new Error('Spec intent.goal is required for rendering.');
-  }
-  if (!String(spec?.primary_domain || '').trim()) {
-    throw new Error('Spec primary_domain is required for rendering.');
-  }
-  if (!String(spec?.research_evidence?.coverage_status?.status || '').trim()) {
-    throw new Error('Spec research_evidence.coverage_status.status is required for rendering.');
-  }
-  if (!Array.isArray(spec?.peer_domains)) {
-    throw new Error('Spec peer_domains must be an array for rendering.');
-  }
-  if (!Array.isArray(spec?.research_evidence?.open_gaps)) {
-    throw new Error('Spec research_evidence.open_gaps must be an array for rendering.');
-  }
-  validateOutputProfile(spec);
-  validateResearchGate(spec);
-  const designMd = spec?.design_md;
-  if (designMd?.enabled) {
-    if (!String(designMd.source_mode || '').trim()) {
-      throw new Error('Spec design_md.source_mode is required when design_md.enabled is true.');
-    }
-    if (designMd.source_mode === 'preset' && !String(designMd.preset_id || '').trim()) {
-      throw new Error('Spec design_md.preset_id is required when design_md.source_mode is preset.');
-    }
-    if (
-      designMd.source_mode === 'user_provided' &&
-      !String(designMd.user_provided_ref || '').trim()
-    ) {
-      throw new Error(
-        'Spec design_md.user_provided_ref is required when design_md.source_mode is user_provided.',
-      );
-    }
-    if (!Array.isArray(designMd.applies_to)) {
-      throw new Error('Spec design_md.applies_to must be an array when design_md.enabled is true.');
-    }
-  }
-  const visualStorytelling = spec?.visual_storytelling;
-  if (visualStorytelling?.enabled) {
-    if (!String(visualStorytelling.artifact_family || '').trim()) {
-      throw new Error(
-        'Spec visual_storytelling.artifact_family is required when visual_storytelling.enabled is true.',
-      );
-    }
-    if (!Array.isArray(visualStorytelling.story_units) || visualStorytelling.story_units.length === 0) {
-      throw new Error(
-        'Spec visual_storytelling.story_units must be a non-empty array when visual_storytelling.enabled is true.',
-      );
-    }
-    if (
-      !Array.isArray(visualStorytelling.output_adapters) ||
-      visualStorytelling.output_adapters.length === 0
-    ) {
-      throw new Error(
-        'Spec visual_storytelling.output_adapters must be a non-empty array when visual_storytelling.enabled is true.',
-      );
-    }
-    if (
-      !Array.isArray(visualStorytelling?.text_hierarchy?.required_layers) ||
-      visualStorytelling.text_hierarchy.required_layers.length === 0
-    ) {
-      throw new Error(
-        'Spec visual_storytelling.text_hierarchy.required_layers must be a non-empty array when visual_storytelling.enabled is true.',
-      );
-    }
-    if (
-      visualStorytelling?.infographic_elements?.required &&
-      (!Array.isArray(visualStorytelling.infographic_elements.allowed_types) ||
-        visualStorytelling.infographic_elements.allowed_types.length === 0)
-    ) {
-      throw new Error(
-        'Spec visual_storytelling.infographic_elements.allowed_types must be non-empty when infographic elements are required.',
-      );
-    }
-  }
-}
-
-function validateOutputProfile(spec) {
-  const outputProfile = spec?.output_profile || {};
-  if (typeof outputProfile.has_visual_output !== 'boolean') {
-    throw new Error('Spec output_profile.has_visual_output must be boolean for rendering.');
-  }
-  if (!Array.isArray(outputProfile.visual_output_types)) {
-    throw new Error('Spec output_profile.visual_output_types must be an array for rendering.');
-  }
-  if (outputProfile.has_visual_output && !spec?.design_md?.enabled) {
-    throw new Error(
-      'Spec with output_profile.has_visual_output=true must also enable design_md before rendering.',
-    );
-  }
-}
-
-function validateResearchGate(spec) {
-  const skillIdentityGate = spec?.research_gate?.skill_identity;
-  const targetEnvironmentGate = spec?.research_gate?.target_environment;
-  const implementationApproachGate = spec?.research_gate?.implementation_approach;
-  const allowedGateStatuses = new Set(['blocked', 'caution', 'ready']);
-  const allowedExecutionPlanes = new Set([
-    'Skill-only',
-    'Skill + CLI',
-    'Skill + API/MCP',
-    'Skill + CLI + API/MCP',
-  ]);
-
-  if (!skillIdentityGate) {
-    throw new Error('Spec research_gate.skill_identity is required for rendering.');
-  }
-  if (!allowedGateStatuses.has(String(skillIdentityGate.status || '').trim())) {
-    throw new Error('Spec research_gate.skill_identity.status must be blocked, caution, or ready.');
-  }
-  if (String(skillIdentityGate.status || '').trim() !== 'ready') {
-    throw new Error('Spec research_gate.skill_identity.status must be ready before rendering.');
-  }
-  if (skillIdentityGate.cocoloop_checked !== true) {
-    throw new Error('Spec research_gate.skill_identity.cocoloop_checked must be true before rendering.');
-  }
-  if (skillIdentityGate.clawhub_checked !== true) {
-    throw new Error('Spec research_gate.skill_identity.clawhub_checked must be true before rendering.');
-  }
-  if (skillIdentityGate.slug_available !== true) {
-    throw new Error('Spec research_gate.skill_identity.slug_available must be true before rendering.');
-  }
-
-  if (!targetEnvironmentGate) {
-    throw new Error('Spec research_gate.target_environment is required for rendering.');
-  }
-  if (!allowedGateStatuses.has(String(targetEnvironmentGate.status || '').trim())) {
-    throw new Error('Spec research_gate.target_environment.status must be blocked, caution, or ready.');
-  }
-  if (String(targetEnvironmentGate.status || '').trim() !== 'ready') {
-    throw new Error('Spec research_gate.target_environment.status must be ready before rendering.');
-  }
-  if (!String(targetEnvironmentGate.current_environment || '').trim()) {
-    throw new Error('Spec research_gate.target_environment.current_environment is required for rendering.');
-  }
-  if (!String(targetEnvironmentGate.target_environment || '').trim()) {
-    throw new Error('Spec research_gate.target_environment.target_environment is required for rendering.');
-  }
-  if (typeof targetEnvironmentGate.current_environment_is_target !== 'boolean') {
-    throw new Error('Spec research_gate.target_environment.current_environment_is_target must be boolean.');
-  }
-
-  if (!implementationApproachGate) {
-    throw new Error('Spec research_gate.implementation_approach is required for rendering.');
-  }
-  if (!allowedGateStatuses.has(String(implementationApproachGate.status || '').trim())) {
-    throw new Error('Spec research_gate.implementation_approach.status must be blocked, caution, or ready.');
-  }
-  if (String(implementationApproachGate.status || '').trim() !== 'ready') {
-    throw new Error('Spec research_gate.implementation_approach.status must be ready before rendering.');
-  }
-  if (!allowedExecutionPlanes.has(String(implementationApproachGate.selected_execution_plane || '').trim())) {
-    throw new Error(
-      'Spec research_gate.implementation_approach.selected_execution_plane must be one of Skill-only, Skill + CLI, Skill + API/MCP, or Skill + CLI + API/MCP.',
-    );
-  }
-}
-
 function buildRenderedSpec(spec, selectedPlatforms) {
   const researchContract = getResearchInteractionContract(spec);
   return {
@@ -287,16 +91,9 @@ function buildRenderedSpec(spec, selectedPlatforms) {
 
 function buildSkillBody(spec, selectedPlatforms) {
   const scope = spec.scope || {};
-  const outputProfile = spec.output_profile || {};
   const researchInteraction = getResearchInteractionContract(spec);
-  const skillIdentityGate = spec?.research_gate?.skill_identity || {};
-  const targetEnvironmentGate = spec?.research_gate?.target_environment || {};
-  const implementationApproachGate = spec?.research_gate?.implementation_approach || {};
   const maxQuestions = researchInteraction.max_questions;
   const countConfirmationQuestions = researchInteraction.count_confirmation_questions;
-  const detectCurrentEnvironmentFirst = researchInteraction.detect_current_environment_first;
-  const confirmTargetEnvironmentBeforeWriting =
-    researchInteraction.confirm_target_environment_before_writing;
   const overflowStrategy = researchInteraction.overflow_strategy;
   const inputs = ensureArray(spec.inputs)
     .map((input) => `- \`${input.name}\`: ${input.description}`)
@@ -311,33 +108,36 @@ function buildSkillBody(spec, selectedPlatforms) {
   const visualStorytelling = spec?.visual_storytelling;
   const designSection = designMd?.enabled
     ? [
-        '## Design Input',
+        '## Design Reference',
         '',
-        '- For webpage, infographic, PPT, and other visual output tasks, read `references/design.md` before high-fidelity design.',
-        '- Users can keep the default official preset, switch to another preset in `references/design-md/`, or replace it with their own `DESIGN.md`.',
-        `- Current source mode: \`${designMd.source_mode}\``,
-        designMd.preset_id ? `- Current preset: \`${designMd.preset_id}\`` : null,
+        `- For visual output, follow \`${designMd.output_path || 'references/design.md'}\` before creating high-fidelity work.`,
+        '- If the user provides a project-specific `DESIGN.md`, use it as the active visual constraint.',
+        '- Use `references/design-md/` only when the user wants to switch to another bundled style reference.',
         '',
-      ].filter(Boolean)
+      ]
     : [];
   const visualStorytellingSection = visualStorytelling?.enabled
     ? [
         '## Visual Storytelling',
         '',
-        `- Artifact family: \`${visualStorytelling.artifact_family}\``,
-        `- Output adapters: ${ensureArray(visualStorytelling.output_adapters)
-          .map((item) => `\`${item}\``)
-          .join(', ') || 'None declared'}`,
-        `- Story units: ${ensureArray(visualStorytelling.story_units)
-          .map((item) => `\`${item}\``)
-          .join(', ') || 'None declared'}`,
-        `- Text hierarchy: ${ensureArray(visualStorytelling?.text_hierarchy?.required_layers)
-          .map((item) => `\`${item}\``)
-          .join(', ') || 'None declared'}`,
-        `- Infographic required: ${visualStorytelling?.infographic_elements?.required ? 'yes' : 'no'}`,
+        '- Use `references/visual-storytelling.md` to plan story units, text hierarchy, visual structures, and adapter-specific output.',
+        '- Keep visual work structured before moving into layout or asset production.',
         '',
       ]
     : [];
+  const resourceItems = [
+    '- `references/spec-summary.md`: confirmed scope, constraints, and delivery contract',
+    '- `references/template-selection.md`: selected platform template references',
+    designMd?.enabled
+      ? `- \`${designMd.output_path || 'references/design.md'}\`: active visual design reference`
+      : null,
+    designMd?.enabled
+      ? '- `references/design-md/`: bundled visual style references'
+      : null,
+    visualStorytelling?.enabled
+      ? '- `references/visual-storytelling.md`: visual storytelling structure'
+      : null,
+  ].filter(Boolean);
 
   return [
     `# ${getDisplayName(spec)}`,
@@ -358,68 +158,32 @@ function buildSkillBody(spec, selectedPlatforms) {
     '',
     outputs || '- No explicit outputs declared',
     '',
-    '## Research Gates',
+    '## Workflow',
     '',
-    `- Skill identity status: \`${skillIdentityGate.status || 'unspecified'}\``,
-    `- Cocoloop slug check complete: ${skillIdentityGate.cocoloop_checked === true ? 'yes' : 'no'}`,
-    `- ClawHub slug check complete: ${skillIdentityGate.clawhub_checked === true ? 'yes' : 'no'}`,
-    `- Slug available: ${skillIdentityGate.slug_available === true ? 'yes' : 'no'}`,
-    `- Target environment status: \`${targetEnvironmentGate.status || 'unspecified'}\``,
-    `- Current environment: ${targetEnvironmentGate.current_environment || 'Unspecified'}`,
-    `- Target environment: ${targetEnvironmentGate.target_environment || 'Unspecified'}`,
-    `- Current environment is target: ${
-      typeof targetEnvironmentGate.current_environment_is_target === 'boolean'
-        ? targetEnvironmentGate.current_environment_is_target
-          ? 'yes'
-          : 'no'
-        : 'unspecified'
-    }`,
-    `- Implementation approach status: \`${implementationApproachGate.status || 'unspecified'}\``,
-    `- Selected execution plane: \`${implementationApproachGate.selected_execution_plane || 'unspecified'}\``,
-    '',
-    '## Output Profile',
-    '',
-    `- Has visual output: ${outputProfile.has_visual_output ? 'yes' : 'no'}`,
-    `- Visual output types: ${ensureArray(outputProfile.visual_output_types)
-      .map((item) => `\`${item}\``)
-      .join(', ') || 'None declared'}`,
-    '',
-    '## Interaction Rules',
-    '',
-    '- Plan the question budget before asking anything.',
+    '- Confirm the user goal, target environment, and execution plane when they are not already clear.',
     `- The full interaction should normally stay within ${maxQuestions} total questions${countConfirmationQuestions ? ', including confirmation questions.' : '.'}`,
     '- Ask only one key question per turn and use defaults, existing context, environment detection, or confirmations to reduce follow-up questions.',
-    detectCurrentEnvironmentFirst
-      ? '- Detect the current environment early and use that result to narrow the platform and runtime discussion.'
-      : null,
-    confirmTargetEnvironmentBeforeWriting
-      ? '- Confirm the target runtime environment before writing any skill content, scaffold, implementation path, or build instructions.'
-      : null,
-    confirmTargetEnvironmentBeforeWriting
-      ? '- If the current environment might be the target environment, ask the user to confirm that explicitly after environment detection.'
-      : null,
-    confirmTargetEnvironmentBeforeWriting
-      ? '- If the target environment is still unclear, stop at clarification and do not start drafting the skill body or execution steps.'
-      : null,
-    '- If the task is already clear, skip redundant questions and move to execution or summary.',
     `- If open gaps remain near the question limit, apply \`${overflowStrategy}\` instead of extending the interview.`,
+    '- Before implementation, check the bundled references and confirm any required external dependency.',
     '',
     ...designSection,
     ...visualStorytellingSection,
-    '## Must Have',
+    '## Scope',
+    '',
+    'Required:',
     '',
     renderMarkdownList(scope.must_have) || '- None declared',
     '',
-    '## Excluded',
+    'Out of scope:',
     '',
     renderMarkdownList(scope.excluded) || '- None declared',
     '',
-    '## Target Platforms',
+    '## Platform Scope',
     '',
     selectedPlatforms
       .map(
         (platform) =>
-          `- \`${platform.platform}\` (${platform.support_level}): ${platform.note || 'No note'}`,
+          `- \`${platform.platform}\`${platform.note ? `: ${platform.note}` : ''}`,
       )
       .join('\n'),
     '',
@@ -427,10 +191,15 @@ function buildSkillBody(spec, selectedPlatforms) {
     '',
     dependencies || '- No dependencies declared',
     '',
+    '## Resources',
+    '',
+    resourceItems.join('\n'),
+    '',
     '## Fallback Policy',
     '',
-    `- Allowed: ${spec?.fallback_policy?.allowed ? 'yes' : 'no'}`,
-    `- Summary: ${spec?.fallback_policy?.summary || 'None declared'}`,
+    spec?.fallback_policy?.allowed
+      ? `- ${spec?.fallback_policy?.summary || 'Use the documented fallback path when the primary route is unavailable.'}`
+      : '- No fallback path declared',
     '',
   ].join('\n');
 }
@@ -590,9 +359,46 @@ function writeCommonFiles(spec, skillDir, selectedPlatforms) {
   }
 }
 
+function isPathInside(parentDir, childPath) {
+  const relativePath = path.relative(parentDir, childPath);
+  return relativePath === '' || (
+    !relativePath.startsWith('..') &&
+    !path.isAbsolute(relativePath)
+  );
+}
+
 function getDesignOutputPath(skillDir, designMd) {
-  const relativePath = designMd?.output_path || 'references/design.md';
-  return path.join(skillDir, relativePath);
+  const relativePath = String(designMd?.output_path || 'references/design.md').trim();
+  if (!relativePath || path.isAbsolute(relativePath)) {
+    throw new Error('Spec design_md.output_path must be a relative path inside the rendered skill.');
+  }
+  const resolvedPath = path.resolve(skillDir, relativePath);
+  const resolvedSkillDir = path.resolve(skillDir);
+  if (!isPathInside(resolvedSkillDir, resolvedPath)) {
+    throw new Error('Spec design_md.output_path must stay inside the rendered skill directory.');
+  }
+  return resolvedPath;
+}
+
+function getUserProvidedDesignPath(specPath, userProvidedRef) {
+  const relativePath = String(userProvidedRef || '').trim();
+  if (!relativePath || path.isAbsolute(relativePath)) {
+    throw new Error('Spec design_md.user_provided_ref must be a relative path inside the spec directory.');
+  }
+  const specDir = path.resolve(path.dirname(specPath));
+  const resolvedPath = path.resolve(specDir, relativePath);
+  if (!fs.existsSync(resolvedPath)) {
+    throw new Error(`design_md.user_provided_ref not found: ${resolvedPath}`);
+  }
+  const realSpecDir = fs.realpathSync(specDir);
+  const realInputPath = fs.realpathSync(resolvedPath);
+  if (!isPathInside(realSpecDir, realInputPath)) {
+    throw new Error('Spec design_md.user_provided_ref must stay inside the spec directory.');
+  }
+  if (!fs.statSync(realInputPath).isFile()) {
+    throw new Error(`design_md.user_provided_ref must point to a file: ${resolvedPath}`);
+  }
+  return realInputPath;
 }
 
 function buildCustomDesignMd(spec) {
@@ -655,10 +461,7 @@ function writeDesignMdFiles(spec, skillDir, specPath) {
     }
     fs.copyFileSync(presetPath, outputPath);
   } else if (designMd.source_mode === 'user_provided') {
-    const resolvedInputPath = path.resolve(path.dirname(specPath), designMd.user_provided_ref);
-    if (!fs.existsSync(resolvedInputPath)) {
-      throw new Error(`design_md.user_provided_ref not found: ${resolvedInputPath}`);
-    }
+    const resolvedInputPath = getUserProvidedDesignPath(specPath, designMd.user_provided_ref);
     fs.copyFileSync(resolvedInputPath, outputPath);
   } else if (designMd.source_mode === 'custom_brief') {
     fs.writeFileSync(outputPath, buildCustomDesignMd(spec));
@@ -810,7 +613,7 @@ function writeMoliliManifest(spec, skillDir, platformInfo) {
 
 function renderSkillFromSpec(specPath, outDir, options = {}) {
   const spec = loadYamlFile(specPath);
-  validateRenderableSpec(spec);
+  assertRenderableSpec(spec);
   const platformMap = getTargetPlatformMap(spec);
   const selectedPlatforms = options.platforms?.length
     ? options.platforms.map((platform) => {

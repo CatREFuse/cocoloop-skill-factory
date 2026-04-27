@@ -145,6 +145,18 @@ domain_supplements:
   workflow_integration: {}
   deploy_platform_ops: {}
   security_risk_review: {}
+  content_ops: {}
+  knowledge_base_ops: {}
+  data_analysis_reporting: {}
+  customer_support_ops: {}
+  ecommerce_growth_ops: {}
+  finance_investment_research: {}
+  sales_crm_ops: {}
+  hr_recruiting_ops: {}
+  education_training_ops: {}
+  legal_contract_ops: {}
+  product_market_research: {}
+  event_community_ops: {}
 
 adapters:
   codex:

@@ -127,3 +127,79 @@ design_md:
   official_library_ref: "cocoloop-skill-factory/ref/design-md/index.md"
   prompt_user_to_use_first: true
   output_path: "references/design.md"
+
+inputs:
+  - name: "source_material"
+    required: true
+    description: "需要转换为视觉叙事产物的原始材料、主题或结构化内容"
+    constraints:
+      note: "需要足以判断产物类型、叙事单元和目标读者"
+      type: "text_or_files"
+      allowed_values: []
+      source: "user_provided"
+
+outputs:
+  - name: "visual_storytelling_plan"
+    format: "markdown+yaml"
+    description: "视觉叙事共享主线、设计入口和 adapter 选择结果"
+    minimum_contents:
+      - "story_units"
+      - "design_md"
+      - "text_hierarchy"
+      - "infographic_elements"
+      - "output_adapters"
+
+fallback_policy:
+  allowed: true
+  summary: "如果具体 adapter 暂不可用，先交付结构化视觉叙事计划和设计约束"
+  fallback_outputs:
+    - "visual_storytelling_plan"
+
+dependencies:
+  - name: "design-md library"
+    kind: "reference"
+    required: true
+    note: "用于为视觉叙事产物提供默认设计入口"
+
+research_evidence:
+  coverage_status:
+    status: "complete"
+    note: "已覆盖共享视觉叙事抽象、design_md 接入、adapter 分流和生成链校验"
+  evidence_refs:
+    - source_type: "local_output"
+      mechanism: "capability_abstraction"
+      solution_name: "presentation-generation"
+      ref: "output/structured-visual-storytelling/reference-skill-analysis.md"
+      note: "用于抽象 PPT 与网页信息图的共享生产线"
+    - source_type: "local_capability"
+      mechanism: "factory_reference"
+      solution_name: "structured-visual-storytelling"
+      ref: "atomic-capability/structured-visual-storytelling/index.md"
+      note: "用于确认共享规则和 adapter 边界"
+  open_gaps: []
+
+primary_domain: "document_artifacts"
+peer_domains:
+  - "frontend_design"
+
+domain_supplements:
+  document_artifacts:
+    artifact_types:
+      - "ppt"
+      - "html_slides"
+    default_execution_plane: "Skill + CLI"
+  frontend_design:
+    visual_outputs:
+      - "web_infographic"
+      - "showcase_graphic"
+
+adapters:
+  codex:
+    status: "ready"
+    entry_points:
+      - "SKILL.md"
+      - "references/design.md"
+      - "references/visual-storytelling.md"
+    mapping_notes:
+      - "通过 factory-skill-builder 生成最小 Codex Skill 骨架"
+    known_gaps: []

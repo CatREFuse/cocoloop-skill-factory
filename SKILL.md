@@ -46,14 +46,17 @@ author: tanshow
 
 - `detect-environment.py`
 - `search-registry.py`
+- `reference-skill.py`
 
 当前 CLI 边界：
 
 - `detect-environment.py` 用于环境检测
 - `search-registry.py` 用于统一承载 `cocoloop`、`clawhub` 与 `github` 搜索
+- `reference-skill.py` 用于把本地或 GitHub 候选 Skill 拉取到证据目录，并生成 JSON / Markdown 分析摘要
 - 当前版本不提供完整的自动生成与发布 CLI，但必须在文档层明确生成、校验和发布所缺的环节
 
 其中 `search-registry.py` 是对 PRD 中 `cocoloop-search`、`clawhub-search` 与 GitHub 检索的合并实现，只覆盖搜索能力本身，不新增额外流程能力。
+其中 `reference-skill.py` 只负责候选方案证据化和目录分析，不替代设计判断。
 
 ### Step 1: Initialize
 
@@ -201,8 +204,9 @@ author: tanshow
 2. 运行 `python3 utils/cli/search-registry.py --source cocoloop --query '...' --exact-slug '<slug>'`
 3. 运行 `python3 utils/cli/search-registry.py --source clawhub --query '...' --exact-slug '<slug>'`
 4. 运行 `python3 utils/cli/search-registry.py --source github --query '...'`
-5. 如仍有明显缺口，再补通用社区或网页搜索
-6. 把结果整理成“直接复用 / 参考改造 / 仅供借鉴 / 放弃”四种结论
+5. 对进入正式比较范围的本地或 GitHub 候选，运行 `python3 utils/cli/reference-skill.py fetch ...` 拉取并生成 `_reference-analysis.md`
+6. 如仍有明显缺口，再补通用社区或网页搜索
+7. 把结果整理成“直接复用 / 参考改造 / 仅供借鉴 / 放弃”四种结论
 
 判断时至少回答这些问题：
 
