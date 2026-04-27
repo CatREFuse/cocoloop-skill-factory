@@ -45,11 +45,26 @@
 - `document_artifacts`
 - `docs_research`
 
-如果明显跨域，再补：
+第二层扩展域也有正式预设。需求明显落在下面方向时，可以直接作为主域；如果它们只是影响风险、执行面或外部系统边界，再放入 `peer_domains`：
 
 - `workflow_integration`
 - `deploy_platform_ops`
 - `security_risk_review`
+
+业务横向扩展域也有正式预设。需求明显落在下面方向时，可以直接作为主域；如果它们只是补充产物、素材、数据或风险边界，再放入 `peer_domains`：
+
+- `content_ops`
+- `knowledge_base_ops`
+- `data_analysis_reporting`
+- `customer_support_ops`
+- `ecommerce_growth_ops`
+- `finance_investment_research`
+- `sales_crm_ops`
+- `hr_recruiting_ops`
+- `education_training_ops`
+- `legal_contract_ops`
+- `product_market_research`
+- `event_community_ops`
 
 路由动作固定如下：
 

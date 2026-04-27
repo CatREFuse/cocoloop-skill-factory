@@ -20,6 +20,31 @@
 | 文档与办公产物 | PDF、Word、PPT、Excel 处理与生成 | [document-artifacts.md](./document-artifacts.md) |
 | 文档检索与研究 | 官方文档检索、引用、知识沉淀、研究整理 | [docs-research.md](./docs-research.md) |
 
+## 第二层扩展预设
+
+| 预设 | 适用方向 | 文档 |
+| --- | --- | --- |
+| 工作流集成 | Notion、Linear、Slack、Jira、飞书、钉钉等系统联动 | [workflow-integration.md](./workflow-integration.md) |
+| 部署与平台运维 | 部署、回滚、环境配置、线上健康检查 | [deploy-platform-ops.md](./deploy-platform-ops.md) |
+| 安全与风险审查 | 权限、凭据、依赖、日志、威胁建模和发布前风险检查 | [security-risk-review.md](./security-risk-review.md) |
+
+## 业务横向扩展预设
+
+| 预设 | 适用方向 | 文档 |
+| --- | --- | --- |
+| 内容运营 | SEO、公众号、小红书、博客、邮件、社媒和多渠道内容生产 | [content-ops.md](./content-ops.md) |
+| 知识库运营 | Obsidian、Notion、钉钉文档、飞书文档、wiki 化和日常维护 | [knowledge-base-ops.md](./knowledge-base-ops.md) |
+| 数据分析与报告 | CSV、Excel、日志、经营数据、图表、周报、月报和仪表盘 | [data-analysis-reporting.md](./data-analysis-reporting.md) |
+| 客户支持运营 | 客服对话、工单、FAQ、回复草稿、反馈分析和升级规则 | [customer-support-ops.md](./customer-support-ops.md) |
+| 电商增长运营 | 商品内容、活动策划、竞品分析、经营报告和店铺系统联动 | [ecommerce-growth-ops.md](./ecommerce-growth-ops.md) |
+| 投研与财务分析 | 公司、行业、市场、财报、组合和风险报告 | [finance-investment-research.md](./finance-investment-research.md) |
+| 销售与 CRM 运营 | 线索、商机、客户跟进、漏斗分析和 CRM 写回 | [sales-crm-ops.md](./sales-crm-ops.md) |
+| 人力与招聘运营 | JD、简历、面试、候选人、入职和 HR 流程 | [hr-recruiting-ops.md](./hr-recruiting-ops.md) |
+| 教育与培训运营 | 课程、教案、题库、课件、学习报告和培训计划 | [education-training-ops.md](./education-training-ops.md) |
+| 法务与合同运营 | 合同摘要、条款比对、风险清单、审批和归档 | [legal-contract-ops.md](./legal-contract-ops.md) |
+| 产品与市场研究 | 用户反馈、竞品、市场、PRD 输入和机会地图 | [product-market-research.md](./product-market-research.md) |
+| 活动与社群运营 | 活动方案、社群日历、报名反馈、复盘和系统写回 | [event-community-ops.md](./event-community-ops.md) |
+
 ## 每个预设都固定包含
 
 - `domain_id`
